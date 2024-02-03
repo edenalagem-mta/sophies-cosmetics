@@ -1,6 +1,7 @@
 import urllib.parse
 import json
 import mysql.connector
+import hashlib
 
 
 class RequestHandler(object):
@@ -13,6 +14,10 @@ class RequestHandler(object):
         #                 database="your_mysql_database"
         #                 )
         # mycursor = mydb.cursor()
+    
+    def hash_password(password):
+        md5_hash = hashlib.md5(password.encode('utf-8'))
+        return md5_hash.hexdigest()
 
     def handle_signup(self, post_data):
         # Extract parameters from the form data
@@ -24,6 +29,8 @@ class RequestHandler(object):
         account_type = post_data['account_type'][0]
 
         print(f'handle_signup: {post_data}')
+
+        hashed_password = self.hash_password(password)
         
         #  # Check if email already exists in the database
         # sql = "SELECT * FROM Accounts WHERE email = %s"
@@ -37,7 +44,7 @@ class RequestHandler(object):
         #     self.send_header('Content-type', 'application/json')
         #     self.end_headers()
         #     response_data = {'error': 'Email address already in use'}
-        #     self.wfile.write(json.dumps(response_data).encode('utf-8'))
+        #     
         #     return
     #     # Insert new user into the database
     #     sql = "INSERT INTO Accounts (email, password, first_name, last_name, address, accountType) VALUES (%s, %s, %s, %s, %s, %s)"
@@ -45,14 +52,11 @@ class RequestHandler(object):
     #     self.mycursor.execute(sql, val)
     #     self.mydb.commit()
         # Send success response
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.end_headers()
-        response_data = {'message': 'Account created successfully'}
-        self.wfile.write(json.dumps(response_data).encode('utf-8'))
         
-    def handle_login(post_data):
+    def handle_login(self, post_data):
         # Extract parameters from the form data
         email = post_data['email'][0]
         password = post_data['password'][0]
+
+        hashed_password = self.hash_password(password)
 

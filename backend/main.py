@@ -14,6 +14,13 @@ def index():
 # Define a route for handling POST requests
 @app.route('/signup', methods=['POST'])
 def signup():
+    handler.handle_signup(request.form)
+    return f'The submitted data is: {request.form}'
+
+# Define a route for handling POST requests
+@app.route('/login', methods=['POST'])
+def login():
+    handler.handle_login(request.form)
     return f'The submitted data is: {request.form}'
 
 
