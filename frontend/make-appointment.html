@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nail Turns Booking</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden; /* Prevent body overflow */
+    }
+
+    .container {
+    display: flex;
+    }
+    .picker {
+  flex: 1;
+  padding: 20px;
+}
+.month-year-picker {
+  text-align: left;
+  margin-left: 22%;
+}
+.content {
+  flex: 2;
+  display: flex;
+}
+h2 {
+    text-align: left;
+    margin-left: 22%;
+}
+
+#calendar {
+    width: 300px;
+    box-shadow: 1px 1px 15px 5px rgba(0, 0, 0, 0.1); 
+    border-radius: 8px; 
+    padding: 2%; 
+    margin-left: 5%;
+
+}
+
+.calendar {
+  flex: 1;
+}
+
+.calendar-day {
+    display: inline-block;
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid #ccc;
+    margin: 7px;
+    cursor: pointer;
+}
+
+.calendar-day.active {
+    background-color: #00bcd4;
+    color: #fff;
+}
+.available-times {
+  flex: 1;
+  padding-left: 5%;
+}
+
+.dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    background-color: #E50058; /* Adjust color as needed */
+    border-radius: 50%;
+    margin: 0 auto;
+    margin-top: -15%;
+}
+
+.day-names {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.day-name {
+    flex: 1;
+    text-align: center;
+}
+
+.calendar-day.empty {
+    visibility: hidden;
+}
+
+.week{
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Style for time buttons */
+.time-btn {
+    background-color: #F3F2F5;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Style for selected time button */
+.time-btn.selected {
+    background-color: #E50058;
+    color: white;
+}
+
+/* Remove default list item bullets */
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+
+    </style>
+</head>
+<body>
+  <header>
+    <!-- Load navbar from navbar.html -->
+    <div id="navbar-container"></div>
+  </header>
+  <main>
+    <div class="container">
+      <div class="picker">
+        <h2>בחירת תאריך</h2>
+        <div class="month-year-picker">
+          <select id="year-selector">
+            <option value="2024" selected>2024</option>
+            <option value="2025">2025</option>
+          </select>
+          <select id="month-selector">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+          </select>
+        </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="days-names" id="day-names"></div>
+        <div class="calendar" id="calendar"></div>
+        <div class="available-times" id="available-turns"></div>
+      </div>
+    </div>
+   
+    
+    
+    <script src="script.js"></script>
+    </main>
+</body>
+<script>
+
+  // Fetch and load navbar from navbar.html
+  fetch('navbar.html')
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById('navbar-container').innerHTML = data;
+      });
+
+      function navigateTo(page) {
+      window.location.href = page;
+    }
+      
+    document.addEventListener('DOMContentLoaded', function () {
+    const yearSelector = document.getElementById('year-selector');
+    const monthSelector = document.getElementById('month-selector');
+    const calendarDiv = document.getElementById('calendar');
+    const availableTurnsDiv = document.getElementById('available-turns');
+
+    yearSelector.addEventListener('change', generateCalendar);
+    monthSelector.addEventListener('change', generateCalendar);
+
+    function generateCalendar() {
+    const selectedYear = parseInt(yearSelector.value);
+    const selectedMonth = parseInt(monthSelector.value);
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate(); // Get the number of days in the selected month
+    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1).getDay(); // Get the day of the week for the first day of the month
+
+    // Array to hold the names of the days
+    const dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+
+    // Clear previous calendar content
+    calendarDiv.innerHTML = '';
+
+    // Start creating the calendar HTML
+    let calendarHTML = '<div class="day-names">';
+    for (let i = 0; i < 7; i++) {
+        calendarHTML += `<div class="day-name">${dayNames[i]}</div>`;
+    }
+    calendarHTML += '</div>';
+
+    // Start a new row for the first week
+    calendarHTML += '<div class="week">';
+
+    // Fill empty cells before the first day of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+        calendarHTML += '<div class="calendar-day empty"></div>';
+    }
+
+    // Create calendar cells for each day in the month
+    for (let i = 1; i <= daysInMonth; i++) {
+        const dayOfWeek = new Date(selectedYear, selectedMonth, i).getDay();
+        const isAvailable = checkAvailability(new Date(selectedYear, selectedMonth, i)); // Check if the day is available
+        const className = isAvailable ? 'calendar-day available' : 'calendar-day';
+        const dot = isAvailable ? '<span class="dot"></span>' : '';
+
+        calendarHTML += `<div class="${className}" data-day="${i}">${i}${dot}</div>`;
+
+         // Start a new row if it's the last day of the week or the last day of the month
+         if (dayOfWeek === 6 || i === daysInMonth) {
+            // Fill empty cells after the last day of the month
+            if (i === daysInMonth) {
+                for (let j = dayOfWeek + 1; j < 7; j++) {
+                    calendarHTML += '<div class="calendar-day empty"></div>';
+                }
+            }
+            calendarHTML += '</div>';
+            if (i !== daysInMonth) {
+                calendarHTML += '<div class="week">';
+            }
+        }
+    }
+
+    // Append the generated calendar HTML to the calendar container
+    calendarDiv.innerHTML = calendarHTML;
+
+    // Add event listener to each day
+    const days = document.querySelectorAll('.calendar-day.available');
+    days.forEach(day => {
+        day.addEventListener('click', () => {
+            const selectedDay = day.dataset.day;
+            showAvailableTurns(selectedYear, selectedMonth, selectedDay);
+        });
+    });
+}
+
+
+
+    // Function to check availability (dummy implementation)
+    function checkAvailability(date) {
+        // You should implement your logic to check if the date is available
+        // For now, this function returns true for all dates
+        return true;
+    }
+
+    function showAvailableTurns(year, month, day) {
+    // Simulated data, replace with real data or backend call
+    const availableTimes = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM'];
+
+    let availableTurnsHTML = '<h2>בחירת שעה</h2>';
+    availableTurnsHTML += '<ul>';
+    availableTimes.forEach(time => {
+        availableTurnsHTML += `<li><button class="time-btn">${time}</button></li>`;
+    });
+    availableTurnsHTML += '</ul>';
+
+    availableTurnsDiv.innerHTML = availableTurnsHTML;
+}
+
+    // Function to handle appointment selection
+    function selectAppointment(selectedButton) {
+    const buttons = document.querySelectorAll('.time-btn');
+    buttons.forEach(button => {
+        if (button === selectedButton) {
+            button.classList.add('selected');
+        } else {
+            button.classList.remove('selected');
+        }
+    });
+  }
+
+    // Event delegation to handle click events on buttons dynamically created
+    availableTurnsDiv.addEventListener('click', function(event) {
+      if (event.target && event.target.matches('.time-btn')) {
+        const selectedButton = event.target;
+        selectAppointment(selectedButton);
+      }
+    });
+    // Initialize calendar with current month and year
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    yearSelector.value = currentYear.toString();
+    monthSelector.value = currentMonth.toString();
+    generateCalendar();
+});
+
+
+
+
+</script>
+</html>
