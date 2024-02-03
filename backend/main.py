@@ -23,6 +23,12 @@ def login():
     handler.handle_login(request.form)
     return f'The submitted data is: {request.form}'
 
+# Define a route for handling POST requests
+@app.route('/create-subject', methods=['POST'])
+def createSubject():
+    handler.handle_create_subject(request.form)
+    return f'The submitted data is: {request.form}'
+
 
 if __name__ == '__main__':
     # Run the Flask application in debug mode on localhost (port 5000)

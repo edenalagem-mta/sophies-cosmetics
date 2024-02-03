@@ -42,12 +42,14 @@
         height: 90%;
     }
     #form-container {
-      border-radius: 10px;
-      margin: 7%;
-      margin-top: 10%;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      position: relative;
-      z-index: 2; /* Ensure form-container is above background-rectangle */
+      width: 80%;
+      max-width: 600px;
+      padding: 20px;
+      position: absolute;
+      top: 40%;
+      left: 60%;
+      transform: translate(-50%, -50%);
+      direction: rtl;
     }
 
     .question-container {
@@ -62,7 +64,7 @@
       margin-bottom: 10px;
     }
 
-    #create-subject-btn {
+    #submit-newSubject {
       background-color: #E50058;
       color: white;
       border: none;
@@ -70,7 +72,16 @@
       border-radius: 5px;
       cursor: pointer;
       position: fixed;
-      margin-top: -5%;
+    }
+
+    #title{
+      padding: 10px;
+      width: 100%;
+    }
+
+    #content{
+      padding: 20px;
+      width: 100%;
     }
   </style>
 </head>
@@ -80,50 +91,33 @@
         <div id="navbar-container"></div>
       </header>
       <main>
-  <div id="main-content">
-    <div id="background-rectangle"></div>
-    <div id="form-container">
-        <!-- Form content goes here -->
-        <button id="create-subject-btn" onclick="createSubject()">נושא חדש</button>
-        <div class="question-container">
-          <div class="question">Question 1</div>
+        <div id="main-content">
+          <div id="background-rectangle"></div>
+          <div id="form-container">
+            <!-- Form content for adding a new subject -->
+            <h2>הוספת נושא חדש</h2>
+            <form id="new-subject-form" method="POST" action="http://localhost:8080/create-subject">
+              <div class="question-container">
+                <label for="title">כותרת:</label><br>
+                <input type="text" id="title" name="title"><br><br>
+                <label for="content">תוכן:</label><br>
+                <textarea id="content" name="content"></textarea><br><br>
+                <button id="submit-newSubject" type="submit">שלח</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <!-- Add New Subject button -->
-       
-      </div>
-  </div>
-</main>
-  <script>
-    // Fetch and load navbar from navbar.html
-    fetch('navbar.html')
-      .then(response => response.text())
-      .then(data => {
-        document.getElementById('navbar-container').innerHTML = data;
-      });
-
-    function navigateTo(page) {
-      window.location.href = page;
+      </main>
+      <script>
+        // Fetch and load navbar from navbar.html
+        fetch('navbar.html')
+          .then(response => response.text())
+          .then(data => {
+            document.getElementById('navbar-container').innerHTML = data;
+          });
+          function navigateTo(page) {
+          window.location.href = page;
     }
-
-    function logout() {
-      // Add logout functionality
-      alert('Logout clicked');
-    }
-
-    function comment(questionId) {
-      // Add comment functionality
-      alert('Comment clicked for Question ' + questionId);
-    }
-
-    function like(questionId) {
-      // Add like functionality
-      alert('Like clicked for Question ' + questionId);
-    }
-
-    function createSubject() {
-      // navigate to create subject page
-      navigateTo('create-subject.html')
-    }
-  </script>
+      </script>
 </body>
 </html>

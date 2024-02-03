@@ -60,3 +60,19 @@ class RequestHandler(object):
 
         hashed_password = self.hash_password(password)
 
+    def handle_create_subject(self, post_data):
+        # Extract parameters from the form data
+        title = post_data['title'][0]
+        content  = post_data['content'][0]
+        #account_id = post_data['account_id'][0]
+        # Insert new subject into the database
+    #     sql = "INSERT INTO subjects (title, content, account_id) VALUES (%s, %s, %s)"
+    #     val = (title, content, account_id)
+    #     self.mycursor.execute(sql, val)
+    #     self.mydb.commit()
+        
+        print(f'handle_create_subject: {post_data}')
+        
+
+
+
