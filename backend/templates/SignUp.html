@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmetics s'sophie - הרשמה</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        #form-container {
+            max-width: 100%;
+            display: flex;
+            justify-content: space-between;
+            background-color: white; 
+        }
+
+        form {
+            width: 60%;
+            box-sizing: border-box;
+            background-color: white; 
+        }
+
+        h2 {
+            color: black;
+        }
+
+        input, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .info-text {
+            color: #430cf7; /* ירוק כהה */
+            display: none;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        .info-container {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .info-icon {
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: middle;
+            background-color: white; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        button {
+            background-color: #E50058;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .image-container {
+            width: 35%;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="form-container">
+        <form id="signup-form" method="POST" action="http://localhost:8080/signup">
+            <h2>איזה כיף שאת מצטרפת אלינו, מלאי את טופס ההרשמה לסיום יצירת המשתמש</h2>
+
+            <select id="account_type" name="account_type">
+                <option value="מתלמדת">מתלמדת</option>
+                <option value="עובדת">עובדת</option>
+                <option value="לקוחה">לקוחה</option>
+            </select>
+            <label for="account_type">:בחר\י סוג משתמש</label>
+            <br><br>
+
+            <label for="first_name">:שם פרטי</label>
+            <input type="text" id="first_name" name="first_name" required>
+            <br>
+
+            <label for="last_name">:שם משפחה</label>
+            <input type="text" id="last_name" name="last_name" required>
+            <br>
+
+            <label for="birth_date">:תאריך לידה</label>
+            <input type="date" id="birth_date" name="birth_date" required>
+            <br>
+
+            <label for="email">:כתובת מייל</label>
+            <input type="email" id="email" name="email" required>
+            <br>
+
+            <label for="address">:כתובת מגורים</label>
+            <textarea id="address" name="address" rows="4" cols="50"></textarea>
+            <br>
+
+            <label for="password">:סיסמה<span class="info-container"><span class="info-icon"
+                        onclick="toggleInfo('passwordInfo')">?</span></span></label>
+            <input type="password" id="password" name="password"
+                pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,14}$"
+                title="סיסמה חייבת לכלול בין 8 ל-14 תווים, אות אנגלית ומספר" required>
+            <p id="passwordInfo" class="info-text">(חייבת לכלול בין 8 ל-14 תווים, אות אנגלית ומספר)</p>
+            <br>
+
+            <label for="confirm_password">:אימות סיסמה</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <br>
+
+            <button type="submit">שלח</button>
+        </form>
+
+        <div class="image-container">
+            <img src = "static\img\signUpPage.jpg"> 
+        </div>
+    </div>
+
+    <script>
+        function toggleInfo(infoId) {
+            var infoElement = document.getElementById(infoId);
+            infoElement.style.display = (infoElement.style.display === 'none' || infoElement.style.display === '') ? 'block' : 'none';
+        }
+    </script>
+
+</body>
+
+</html>
+
+
+
+
+
+

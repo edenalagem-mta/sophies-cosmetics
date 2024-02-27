@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Work Constraints</title>
+  <!--To Do: relate styles.css file-->
+  <!-- <link rel="stylesheet" href="styles.css"> -->
+  <style>
+
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      min-height: 100vh;
+      height: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header {
+      height: 10%;
+      position: relative;
+      z-index: 2; 
+    }
+
+    h2{
+      direction: rtl;
+      margin-top: 5%;
+      margin-right:5%
+    }
+
+    form{
+      direction: rtl;
+    }
+    #submitBtn, .delBtn{
+      background-color: #E50058;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 45%;
+      display: block;
+    }
+
+    #times{
+      height: 200px;
+      width: 100px;
+    }
+
+    .dates{
+      margin-right: 40%;
+      position: absolute;
+      margin-top: 5%;
+    }
+
+    .times{
+      margin-right: 50%;
+    }
+
+    li{
+      margin:2%;
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 10px;
+      text-align: right;
+      list-style-type: none
+    }
+
+    #background-rectangle {
+      background-color: #FBB8A1;
+      position: relative;
+      left: 2%;
+      width: 96%;
+      height: 99%;
+      border-radius: 30px; 
+      padding-bottom: 1%;
+    }
+
+    ul{
+      padding-inline-end: 40px;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Load navbar from navbar.html -->
+    <div id="navbar-container"></div>
+  </header>
+  <main>
+    <h2>הוסיפי אילוצים עבור חודש העבודה הבא</h2>
+    <form action="/add-work-constraints" method="post">
+      <label class="dates" for="dates">בחירת תאריך:</label><br>
+      <input class="dates" type="date" id="dates" name="dates" required><br><br>
+      <label class="times" for="times">בחירת שעה:</label><br>
+      <select class="times" id="times" name="times[]" multiple required>
+        <!-- Time options will be generated dynamically using JavaScript -->
+      </select><br><br>
+      <input id="submitBtn" type="submit" value="שליחה">
+    </form>
+    <div id="background-rectangle"> 
+      <h2>האילוצים שלי</h2>
+      <ul>
+        {% for constraint in constraints %}
+        <li>{{ constraint[2] }} שעה - {{ constraint[3] }} תאריך 
+        <button type="button" class="delBtn" data-constraint-id="{{ constraint[0] }}">מחקי אילוץ</button></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </main>
+</body>
+<script>
+    // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+          .then(response => response.text())
+          .then(data => {
+            document.getElementById('navbar-container').innerHTML = data;
+          });
+          function navigateTo(page) {
+          window.location.href = page;
+        }
+
+     // Get the current date
+    var today = new Date();
+
+// Calculate the minimum and maximum date for the date input field (next month)
+var nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+var year = nextMonth.getFullYear();
+var month = nextMonth.getMonth() + 1; // Month is 0-indexed, so add 1
+if (month < 10) {
+  month = '0' + month; // Pad month with leading zero if needed
+}
+var minDate = year + '-' + month + '-01'; // First day of next month
+var maxDate = year + '-' + month + '-' + new Date(year, month, 0).getDate(); // Last day of next month
+
+// Set the minimum and maximum date for the date input field
+document.getElementById('dates').setAttribute('min', minDate);
+document.getElementById('dates').setAttribute('max', maxDate);
+
+// Define the start and end times for work constraints
+var startTime = 8; // 08:00
+    var endTime = 19;  // 19:00
+
+    // Function to generate time options
+    function generateTimeOptions() {
+      var select = document.getElementById('times');
+
+      // Loop through the time intervals and create options
+      for (var hour = startTime; hour < endTime; hour++) {
+        var startHour = ('0' + hour).slice(-2); // Pad hour with leading zero if needed
+        var endHour = ('0' + (hour + 1)).slice(-2); // Next hour
+
+        // Create time interval strings (e.g., "08:00-09:00")
+        var optionText = startHour + ':00-' + endHour + ':00';
+
+        // Create option element
+        var option = document.createElement('option');
+        option.value = optionText;
+        option.text = optionText;
+
+        // Append the option to the select element
+        select.appendChild(option);
+      }
+    }
+
+    // Call the function to generate time options when the page loads
+    window.onload = generateTimeOptions;
+
+    document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('ul').addEventListener('click', function(event) {
+        if (event.target.classList.contains('delBtn')) {
+            var constraintId = event.target.getAttribute('data-constraint-id');
+            deleteConstraint(constraintId);
+        }
+    });
+});
+
+
+    function deleteConstraint(constraintId) {
+            // Perform an AJAX request to delete the constraint
+            fetch(`/delete-constraint/${constraintId}`, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                constraintId: constraintId
+              })
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload the page after successful deletion
+                    window.location.reload();
+                } else {
+                    // Handle error response
+                    console.error('Error deleting constraint');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    
+</script>
+</html>

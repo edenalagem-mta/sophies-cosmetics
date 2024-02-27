@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmetics s'sophie - כניסה לחשבון</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #CFD1D2;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        form {
+            max-width: 400px; /* גודל הטופס */
+            width: 100%;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
+            box-sizing: border-box;
+        }
+        h2 {
+            color: black; 
+        }
+        input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        button {
+            background-color:  #E50058;
+            color: white;
+            padding: 10px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        img {
+            width: 400px; /* גודל התמונה */
+            height: auto;
+            margin-right: 20px; /* מרווח מצד ימין */
+        }
+
+        #signUp{
+            direction: rtl;
+        }
+
+        #signUpBtn,#forgotPasswordBtn{
+            background-color: white;
+            color: #E50058;
+            font-weight: bolder;
+            padding: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- טופס התחברות -->
+    <form method="POST" action="/login">
+        <h2>כניסה לחשבון</h2>
+        
+        <label for="email">כתובת מייל</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+
+        <label for="password">סיסמה</label>
+        <input type="password" id="password" name="password" pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,14}$" title="סיסמה חייבת לכלול בין 8 ל-14 תווים, אות אנגלית ומספר">
+        <br>
+
+        <button type="button" id="forgotPasswordBtn" onclick="forgotPassword()">שכחתי סיסמה</button>
+        <button type="submit">כניסה</button>
+        <p id="signUp">אין לך חשבון? <button type="button" id="signUpBtn" onclick="navigateToSignUp()">להרשמה</button></p>
+
+    </form>
+    <div id="error-message" style="display: none; color: red;"></div> <!-- Error message div -->
+
+
+    <!-- image to the right side of the background -->
+    <img src="static\img\signInPage.jpg"> 
+
+    <script>
+        function forgotPassword() {
+            var userInput = prompt("אנא הזן/י מייל :");
+            // להוסיף לוגיקה לאיפוס סיסמה
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
+        document.querySelector('form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            // Serialize form data into JSON
+            const formData = new FormData(event.target);
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            // Send a POST request to the server
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                console.log('data = ', data);
+                if (data.success) {
+                    // Redirect to the specified URL if login is successful
+                    window.location.href = data.redirect_url;
+                } else {
+                    // Display the error message
+                    const errorMessageDiv = document.getElementById('error-message');
+                    errorMessageDiv.textContent = data.error_message;
+                    errorMessageDiv.style.display = 'block'; // Show the error message   
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function navigateToSignUp() {
+        window.location.href = "{{ url_for('sign_up') }}";
+        }
+
+    </script>
+
+</body>
+</html>

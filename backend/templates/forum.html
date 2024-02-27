@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #main-content {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden; /* Hide any overflow outside main-content */
+    }
+
+    #background-rectangle {
+      background-color: #FBB8A1;
+      position: absolute;
+      top: 0.5%;
+      left: 2%;
+      bottom: 5%;
+      width: 96%;
+      height: 99%;
+      z-index: -1;
+      border-radius: 30px; 
+    }
+
+    header {
+        height: 10%;
+      position: relative;
+      z-index: 2; /* Ensure header is above background-rectangle */
+    }
+
+    main{
+        height: 90%;
+    }
+    #form-container {
+      border-radius: 10px;
+      margin: 7%;
+      margin-top: 10%;
+      position: relative;
+      z-index: 2; /* Ensure form-container is above background-rectangle */
+    }
+
+    .subjects-container {
+      margin-bottom: 20px;
+    }
+
+    .question {
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 10px;
+      direction: rtl;
+    }
+
+    #create-subject-btn, #delBtn {
+      background-color: #E50058;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: -5%;
+      margin-bottom: 1%;
+    }
+    p,h3{
+      direction: rtl;
+    }
+
+  </style>
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+        <button id="create-subject-btn" onclick="createSubject()">נושא חדש</button>
+        <div id="question-container" class="question-container"> 
+          {% for subject in subjects %}
+            <div class="question">
+                <h3>{{ subject.title }}</h3>
+                <p>{{ subject.content }}</p>
+                {% if account_id == subject.account_id %}
+                  <button id="delBtn" onclick="deleteSubject({{ subject.subject_id }})">מחק נושא</button>
+                {% endif %}
+                <i class="fa fa-comments" onclick="toggleComments({{ subject.subject_id }})"></i>
+                <span id="comment-count-{{ subject.subject_id }}" class="comment-count">{{subject.comment_count}} תגובות</span>
+                <div id="comments-{{ subject.subject_id }}" style="display: none;"></div>
+                <form id="comment-form-{{ subject.subject_id }}" style="display: none;">
+                    <input type="text" id="comment-input-{{ subject.subject_id }}" placeholder="Add a comment">
+                    <button type="button" onclick="submitComment({{ subject.subject_id }})">Submit</button>
+                </form>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function comment(questionId) {
+      // Add comment functionality
+      alert('Comment clicked for Question ' + questionId);
+    }
+
+    function createSubject() {
+      // navigate to create subject page
+      navigateTo('/create-subject')
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      console.log('DOM loaded');
+      // Fetch subjects from the Flask route
+      fetch("/forum")
+          .then(response => response.json())
+          .then(data => {
+              const subjectsContainer = document.getElementById('question-container');
+              data.subjects.forEach(subject => {
+                  const subjectDiv = document.createElement('div');
+                  subjectDiv.classList.add('question');
+                  subjectDiv.style.direction='rtl';
+
+                  const titleParagraph = document.createElement('h3');
+                  titleParagraph.textContent = `${subject.title}`;
+
+                  const contentParagraph = document.createElement('p');
+                  contentParagraph.textContent = `${subject.content}`;
+
+                  const commentIcon = document.createElement('i');
+                  commentIcon.classList.add('fa', 'fa-comments'); 
+                  commentIcon.addEventListener('click', () => {
+                      // Handle comment click event, show/hide comments
+                      toggleComments(subject.subject_id);
+                      toggleCommentForm(subject.subject_id);
+                      // Fetch comments related to the subject
+                      fetchComments(subject.subject_id);
+                  });
+
+                  // Inside the forEach loop where you create subject elements
+                  const commentCountSpan = document.createElement('span');
+                  commentCountSpan.textContent = `${subject.comment_count} תגובות`;
+                  commentCountSpan.style.direction = 'rtl';
+                  commentCountSpan.style.unicodeBidi = 'embed';
+
+                  // Append the comment count span next to the comment icon
+                  subjectDiv.appendChild(commentIcon);
+                  subjectDiv.appendChild(commentCountSpan);
+
+                  const commentsContainer = document.createElement('div');
+                  commentsContainer.setAttribute('id', `comments-${subject.subject_id}`);
+                  commentsContainer.classList.add('comments-container');
+
+                  const commentsFormContainer = document.createElement('form');
+                  const commentFormId = `comment-form-${subject.subject_id}`; // Ensure subject_id is correct
+                  commentsFormContainer.setAttribute('id', commentFormId);
+                  commentsFormContainer.classList.add('comments-form-container');
+                  commentsFormContainer.style.display = 'none';
+                  console.log(`Created comment form with ID: ${commentFormId}`); // Log the created ID
+
+                  // Append the commentsFormContainer to subjectDiv
+                  subjectDiv.appendChild(commentsFormContainer);
+
+                  
+                  subjectDiv.appendChild(titleParagraph);
+                  subjectDiv.appendChild(contentParagraph);
+                  subjectDiv.appendChild(commentIcon);
+                  subjectDiv.appendChild(commentCountSpan);
+                  subjectDiv.appendChild(commentsContainer);
+
+                  subjectsContainer.appendChild(subjectDiv);
+
+                  // Create comment input and submit button elements outside of the toggleCommentForm function
+                  const commentInput = document.createElement('input');
+                  commentInput.setAttribute('type', 'text');
+                  commentInput.setAttribute('name','comment')
+                  commentInput.setAttribute('placeholder', 'Type your comment...');
+                  commentsFormContainer.appendChild(commentInput);
+
+                  const submitButton = document.createElement('button');
+                  submitButton.textContent = 'Submit';
+                  submitButton.type="submit";
+                  submitButton.addEventListener('click', () => {
+                      const userInput = commentInput.value;
+                      submitComment(subject.subject_id);
+                      // Clear input field after submission
+                      commentInput.value = '';
+                  });
+                  commentsFormContainer.appendChild(submitButton);
+              });
+          })
+          .catch(error => {
+              console.error('Error fetching subjects:', error);
+          });
+  }
+);
+
+// Function to toggle comments visibility
+function toggleComments(subjectId) {
+    const commentsDiv = document.getElementById(`comments-${subjectId}`);
+    const commentForm = document.getElementById(`comment-form-${subjectId}`);
+
+    if (commentsDiv.style.display === 'none') {
+        commentsDiv.style.display = 'block'; // Show comments
+        commentForm.style.display = 'block'; // Show comment form
+        fetchComments(subjectId);
+    } else {
+        commentsDiv.style.display = 'none'; // Hide comments
+        commentForm.style.display = 'none'; // Hide comment form
+    }
+}
+
+// Function to toggle comment form visibility
+function toggleCommentForm(subjectId) {
+    const commentFormDiv = document.getElementById(`comment-form-${subjectId}`);
+    if (commentFormDiv.style.display === 'none' || !commentFormDiv.style.display) {
+        commentFormDiv.style.display = 'block'; // Show comment form
+    } else {
+        commentFormDiv.style.display = 'none'; // Hide comment form
+    }
+}
+
+function submitComment(subjectId) {
+    const commentInput = document.getElementById(`comment-input-${subjectId}`);
+    console.log('Comment input:', commentInput);
+    const commentValue = commentInput.value;
+    console.log('subject id: ', subjectId);
+    console.log('comment: ', commentValue);
+    const formData = new FormData();
+    formData.append('subject_id', subjectId);
+    formData.append('content', commentValue);
+
+    fetch("/submit-comment", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Server response:', data);
+        // Refresh the page after submitting the comment
+        window.location.reload();
+
+        // Clear the input box after submission
+        commentInput.value = '';
+    })
+    .catch(error => {
+        console.error('Error submitting comment:', error);
+    });4
+}
+
+function fetchComments(subjectId) {
+    fetch(`/show-comments?subject_id=${subjectId}`)
+        .then(response => response.json())
+        .then(data => {
+            const commentsContainer = document.getElementById(`comments-${subjectId}`);
+            commentsContainer.innerHTML = ''; // Clear previous comments
+
+            data.comments.forEach(comment => {
+                const commentDiv = document.createElement('div');
+                commentDiv.textContent = comment.content;
+                // Append the comment to the comments container
+                commentsContainer.appendChild(commentDiv);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching comments:', error);
+        });
+}
+
+function deleteSubject(subjectId) {
+    // Confirm with the user before deleting the subject
+    if (confirm("Are you sure you want to delete this subject?")) {
+        // Send an asynchronous POST request to the server to delete the subject
+        fetch("/delete-subject", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                subject_id: subjectId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If deletion is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to delete subject");
+            }
+        })
+        .catch(error => {
+            console.error("Error deleting subject:", error);
+        });
+    }
+}
+
+
+
+  </script>
+</body>
+</html>

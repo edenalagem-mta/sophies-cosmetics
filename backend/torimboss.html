@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מעקב תורים למנהלת</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fcd6bd; 
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        #calendar-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #FFC0CB; /* ורוד בהיר */
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #FFC0CB; /* ורוד בהיר */
+        }
+
+        #calendar {
+            background-color: white;
+        }
+
+        #daily-calendar {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #FFC0CB; /* ורוד בהיר */
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .fc-event {
+            cursor: pointer;
+            margin: 5px;
+            padding: 5px;
+            background-color: #FFC0CB; /* ורוד בהיר */
+            color: white;
+            border-radius: 5px;
+        }
+
+        #search {
+            margin: 20px;
+            padding: 10px;
+        }
+
+        #title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="calendar-container">
+        <div id="title">מעקב תורים למנהלת</div>
+        <div id="search">
+            <label for="employeeSearch">חיפוש עובדת:</label>
+            <input type="text" id="employeeSearch" placeholder="הקלד/י שם עובדת">
+            <button onclick="searchEmployee()">חפש</button>
+        </div>
+        <div id="calendar"></div>
+        <div id="daily-calendar"></div>
+        <button onclick="showMonthView()">חזור לחודש</button>
+    </div>
+
+    <script>
+        function showMonthView() {
+            $('#calendar').fullCalendar('changeView', 'month');
+            $('#daily-calendar').empty();
+        }
+
+        function searchEmployee() {
+            var searchString = $('#employeeSearch').val();
+            if (searchString) {
+                var events = $('#calendar').fullCalendar('clientEvents');
+                var matchingEvents = events.filter(event => event.title.includes(searchString));
+                if (matchingEvents.length > 0) {
+                    var date = moment(matchingEvents[0].start).format('YYYY-MM-DD');
+                    $('#calendar').fullCalendar('gotoDate', date);
+                    $('#calendar').fullCalendar('changeView', 'agendaDay');
+                    showDailyEvents(date);
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,agendaWeek,agendaDay'
+                },
+                events: [
+                    {
+                        title: 'טיפול משקם עובדת 1',
+                        start: '2024-01-05T11:00:00',
+                        end: '2024-01-05T12:30:00',
+                        category: 'עובדת 1',
+                        customer: 'עובדת 1',
+                        treatment: 'טיפול משקם',
+                        duration: '1.5 שעות'
+                    },
+                    {
+                        title: ' בניית ציפורנים   ',
+                        start: '2024-01-15T14:00:00',
+                        end: '2024-01-15T15:30:00',
+                        category: 'עובדת 2',
+                        customer: 'עובדת 2',
+                        treatment: 'בניית ציפורנים ',
+                        duration: '1.5 שעות'
+                    },
+                    {
+                        title: 'פדיקור',
+                        start: '2024-01-20T10:00:00',
+                        end: '2024-01-20T11:00:00',
+                        category:'עובדת 3',
+                        customer: 'עובדת 3',
+                        treatment: 'פדיקור',
+                        duration: '1 שעה'
+                    },
+                    // הוסף עוד אירועים כפי שמתאים לך
+                ],
+                eventRender: function (event, element) {
+                    element.attr('title', event.title);
+                    if (event.category === 'עובדת 1') {
+                        element.css('background-color', '#FF1493'); /* ורוד בהיר */
+                        element.css('border-color', '#FF1493'); /* ורוד בהיר */
+                    }
+                    else if (event.category === 'עובדת 2') {
+                        element.css('background-color', '#FF69B4'); /* ורוד בהיר נוסף */
+                        element.css('border-color', '#FF69B4'); /* ורוד בהיר נוסף */
+                    }
+                    else if (event.category === 'עובדת 3') {
+                        element.css('background-color', '#DB7093'); /* ורוד בהיר נוסף */
+                        element.css('border-color', '#DB7093'); /* ורוד בהיר נוסף */
+                    }
+                },
+                dayClick: function (date, jsEvent, view) {
+                    $('#calendar').fullCalendar('changeView', 'agendaDay');
+                    $('#calendar').fullCalendar('gotoDate', date);
+                    showDailyEvents(date.format('YYYY-MM-DD'));
+                }
+            });
+
+            function showDailyEvents(date) {
+                var dailyEvents = $('#daily-calendar');
+                dailyEvents.empty();
+                var events = $('#calendar').fullCalendar('clientEvents');
+                var dailyEventsData = events.filter(event => moment(event.start).format('YYYY-MM-DD') === date);
+                dailyEventsData.forEach(event => {
+                    var eventDiv = $('<div class="fc-event"></div>');
+                    eventDiv.text(`${event.customer} - ${event.treatment} (${event.duration})`);
+                    dailyEvents.append(eventDiv);
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
+

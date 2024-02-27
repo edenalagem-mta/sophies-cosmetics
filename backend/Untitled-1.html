@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Weekly Work Schedule</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url(Image20240213190045.jpg) ;
+            background-size: contain;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .schedule {
+            max-width: 600px;
+            width: 100%;
+            background-color: #eb815e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #ffffff; 
+            margin-bottom: 20px;
+        }
+
+        .days {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .day {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #e79e6d; 
+            color: #fff;
+            border-radius: 4px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+        .day:hover {
+            background-color: #e79e6d;
+        }
+
+        .schedule-container {
+            display: none;
+        }
+
+        .schedule-container.active {
+            display: block;
+        }
+
+        .hour {
+            background-color: #ffd1dc; 
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .empty-hour {
+            background-color: #fff; 
+        }
+    </style>
+</head>
+<body>
+    <div class="schedule">
+        <h1>סידור עבודה שבועי</h1>
+
+        <div class="days">
+            <div class="day" onclick="showSchedule('Saturday')">יום שבת</div>
+            <div class="day" onclick="showSchedule('Friday')">יום שישי</div>
+            <div class="day" onclick="showSchedule('Thursday')">יום חמישי</div>
+            <div class="day" onclick="showSchedule('Wednesday')">יום רביעי</div>
+            <div class="day" onclick="showSchedule('Tuesday')">יום שלישי</div>
+            <div class="day" onclick="showSchedule('Monday')">יום שני</div>
+            <div class="day" onclick="showSchedule('Sunday')">יום ראשון</div>
+        </div>
+
+        <div class="schedule-container" id="Monday">
+            <h2>שעות עבודה ליום שני</h2>
+            <div class="hour">9:00 AM - 10:00 AM<br>לקוחה: בר כהן</div>
+            <div class="hour empty-hour">10:00 AM - 11:00 AM<br>אין תורים בשעה זאת</div>
+            <div class="hour empty-hour">11:00 AM - 12:00 AM<br>לקוחה : סתיו גולני</div>
+            <!-- דוגמה איך יופיע (צריך לקשר לטבלת בבסיס הנתונים) -->
+        </div>
+
+        <div class="schedule-container" id="Tuesday">
+            <h2>שעות עבודה ליום שלישי</h2>
+            <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <div class="schedule-container" id="Wednesday">
+            <h2>שעות עבודה ליום רביעי</h2>
+            <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <div class="schedule-container" id="Thursday">
+            <h2>שעות עבודה ליום חמישי</h2>
+            <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <div class="schedule-container" id="Friday">
+            <h2>שעות עבודה ליום שישי</h2>
+            <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <div class="schedule-container" id="Saturday">
+            <h2>שעות עבודה ליום שבת</h2>
+            <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <div class="schedule-container" id="Sunday">
+            <h2>שעות עבודה ליום ראשון</h2>
+          <!-- צריך לקשר לטבלת בבסיס הנתונים -->
+        </div>
+
+        <script>
+            function showSchedule(day) {
+                // כדי שלא יופיע השעות
+                var containers = document.querySelectorAll('.schedule-container');
+                containers.forEach(function(container) {
+                    container.classList.remove('active');
+                });
+
+                // כדי שיופיע שעות היום הנבחר
+                var selectedContainer = document.getElementById(day);
+                selectedContainer.classList.add('active');
+            }
+        </script>
+    </div>
+</body>
+</html>

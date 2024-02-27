@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmetics s'sophie - שחזור סיסמה</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color:  rgb(212, 210, 210);
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white; /* כתום בהיר מאוד */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: black;
+        }
+
+        input,
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        button {
+            background-color:  #ba2255;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .error-message,
+        .success-message {
+            color: red;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f1f1f1;
+            padding: 20px;
+            z-index: 1;
+            display: none;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1;
+            display: none;
+        }
+
+        .popup-text {
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            float: right;
+        }
+
+        .image-container {
+            max-width: 400px;
+            margin-right: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- טופס שחזור סיסמה -->
+    <div class="container">
+        <form class="form-container" action="password_recovery.php" method="post">
+            <h2>שחזור סיסמה</h2>
+
+            <label for="userType">:בחר\י סוג אימות </label>
+            <select id="userType" name="userType">
+                <option value="email">מייל</option>
+                <option value="phone">פלאפון</option>
+            </select>
+            <br>
+
+            <label for="userInput">:הזנ\י מייל או פלאפון</label>
+            <input type="text" id="userInput" name="userInput" required>
+            <br>
+
+            <button type="button" onclick="validateInput()">שחזור סיסמה</button>
+            <p class="error-message" id="invalidInputMessage"></p>
+            <p class="success-message" id="successMessage"></p>
+        </form>
+
+        <!-- הכנסת תמונה -->
+        <div class="image-container">
+            <img src = "newneils.png.jpg"> 
+        </div>
+    </div>
+
+    <!-- חלון פופ-אפ -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <span class="close-btn" onclick="closePopup()">&times;</span>
+        <div class="popup-text" id="popupText"></div>
+    </div>
+
+    <script>
+        function displayErrorPopup(message) {
+            var overlay = document.getElementById('overlay');
+            var popup = document.getElementById('popup');
+            var popupText = document.getElementById('popupText');
+
+            popupText.innerHTML = message;
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+        }
+
+        function validateInput() {
+            var userType = document.getElementById('userType').value;
+            var userInput = document.getElementById('userInput').value;
+
+            var isValid = true;
+            var errorMessage = '';
+
+            if (userType === 'email') {
+                // בדיקת תקינות מייל
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                isValid = emailRegex.test(userInput);
+                errorMessage = 'המייל שהזנת אינו תקין';
+            } else if (userType === 'phone') {
+                // בדיקת תקינות פלאפון
+                var phoneRegex = /^\d{10}$/;
+                isValid = phoneRegex.test(userInput);
+                errorMessage = 'הפלאפון שהזנת אינו תקין';
+            }
+
+            if (!isValid) {
+                displayErrorPopup(errorMessage);
+            } else {
+                // המשך עם הלוגיקה שלך לשחזור סיסמה
+                // לדוג', קריאה ל- API או כל פעולה אחרת
+            }
+        }
+
+        function closePopup() {
+            var overlay = document.getElementById('overlay');
+            var popup = document.getElementById('popup');
+
+            overlay.style.display = 'none';
+            popup.style.display = 'none';
+        }
+    </script>
+
+</body>
+
+</html>
+

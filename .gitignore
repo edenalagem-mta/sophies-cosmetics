@@ -1,0 +1,3 @@
+backend.zip
+backend/__pycache__/*
+backend/flask_session/*
