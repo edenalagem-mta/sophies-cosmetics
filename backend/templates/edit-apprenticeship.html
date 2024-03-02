@@ -1,0 +1,183 @@
+<!-- main-page.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden; /* Prevent body overflow */
+    }
+
+    #main-content {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden; /* Hide any overflow outside main-content */
+    }
+
+    #background-rectangle {
+      background-color: #FBB8A1;
+      position: absolute;
+      top: 3%;
+      left: 2%;
+      bottom: 5%;
+      width: 96%;
+      height: 80%;
+      z-index: -1;
+      border-radius: 30px; /* Adjust the radius as needed */
+    }
+
+    header {
+        height: 10%;
+      position: relative;
+      z-index: 2; /* Ensure header is above background-rectangle */
+    }
+
+    main{
+        height: 90%;
+    }
+    #form-container {
+      width: 100%;
+      max-width: 750px;
+      padding: 20px;
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      direction: rtl;
+    }
+
+    .apprenticeship-container {
+      margin-bottom: 20px;
+    }
+
+
+    #submit-newApprenticeship {
+      background-color: #E50058;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      position: fixed;
+    }
+
+    #title{
+      width: 100%;
+    }
+
+    #description{
+      width: 100%;
+    }
+
+    #duration, #amount_of_meetings{
+      width: 10%;
+    }
+  </style>
+</head>
+<body>
+    <header>
+        <!-- Load navbar from navbar.html -->
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+        <div id="main-content">
+          <div id="background-rectangle"></div>
+          <div id="form-container">
+            <h2>הוספת התלמדות חדשה</h2>
+            <form id="new-apprenticeship-form" method="POST" action="/edit-apprenticeship" data-apprenticeship-id="{{ apprenticeship.apprenticeship_id }}">
+              <div class="apprenticeship-container">
+                <!-- <label for="image">תמונה:</label><br>
+                <input type="file" id="image" name="image"><br><br> -->
+                <label for="title">שם התלמדות:</label><br>
+                <input type="text" id="title" name="title" value="{{ apprenticeship.title }}"><br><br>
+                <label for="description">תיאור התלמדות:</label><br>
+                <textarea id="description" name="description">{{ apprenticeship.description }}</textarea><br><br>
+                <div id="dates">
+                  <label for="startDate">תאריך התחלה:</label>
+                  <input type="date" id="startDate" name="startDate" value="{{ apprenticeship.startDate }}">
+                  <label for="endDate">תאריך סיום:</label>
+                  <input type="date" id="endDate" name="endDate" value="{{ apprenticeship.endDate }}">
+                  <label for="hour">שעת ההתלמדות:</label>
+                  <input type="time" id="hour" name="hour" value="{{ apprenticeship.time }}"><br><br>
+                </div>
+                <div>
+                  <label for="days">ימים בשבוע:</label>
+                  <input type="days" id="days" name="days" value="{{ apprenticeship.day_of_week }}">
+                  <label for="duration">משך שיעור בשעות:</label>
+                  <input type="text" id="duration" name="duration" value="{{ apprenticeship.duration }}">
+                  <label for="amount_of_meetings">כמות מפגשים:</label>
+                  <input type="text" id="amount_of_meetings" name="amount_of_meetings" value="{{ apprenticeship.amount_of_meetings }}"><br><br>
+                </div>
+                <label for="amount_of_people">מכסת משתתפים:</label><br>
+                <input type="text" id="amount_of_people" name="amount_of_people" value="{{ apprenticeship.amount_of_people }}"><br><br>
+                <label for="price">עלות:</label><br>
+                <input type="text" id="price" name="price" value="{{ apprenticeship.price }}"><br><br>
+                <button id="submit-newApprenticeship" type="submit">שלח</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+      <script>
+        // Function to fetch and load navbar from the server
+function loadNavbar() {
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('navbar-container').innerHTML = data;
+        })
+        .catch(error => {
+            console.error('Error loading navbar:', error);
+        });
+}
+
+// Call the loadNavbar function when the page loads
+window.addEventListener('load', loadNavbar);
+          function navigateTo(page) {
+          window.location.href = page;
+        }
+        document.querySelector('form').addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent the form from submitting normally
+
+            // Serialize form data into JSON
+            const formData = new FormData(event.target);
+            const jsonData = {};
+            formData.forEach((value, key) => {
+                jsonData[key] = value;
+            });
+
+            const form = document.getElementById('new-apprenticeship-form');
+            const apprenticeshipId = form.getAttribute('data-apprenticeship-id');
+            console.log(apprenticeshipId)
+
+          // Send a POST request to the server
+          fetch(`/edit-apprenticeship/${apprenticeshipId}` , {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Set-Cookie': 'Beautiful-Cookie=' + localStorage.getItem('Beautiful-Cookie') + ';'
+            },
+            body: JSON.stringify(jsonData)
+          })
+          .then(response => {
+            if (response.ok) {
+                // If editing is successful, reload the page to reflect the changes
+                window.location.href="/apprenticeship";
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to editing apprenticeship");
+            }
+          })
+          .catch(error => {
+              console.error("Error editing apprenticeship:", error);
+          });
+        })
+      </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nail Turns Booking</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
     <style>
       body {
       height: 100%;
@@ -139,18 +139,18 @@ ul {
             <option value="2025">2025</option>
           </select>
           <select id="month-selector">
-            <option value="0">January</option>
-            <option value="1">February</option>
-            <option value="2">March</option>
-            <option value="3">April</option>
-            <option value="4">May</option>
-            <option value="5">June</option>
-            <option value="6">July</option>
-            <option value="7">August</option>
-            <option value="8">September</option>
-            <option value="9">October</option>
-            <option value="10">November</option>
-            <option value="11">December</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
           </select>
         </div>
         </div>
@@ -181,8 +181,8 @@ ul {
         console.error('Error fetching navbar:', error);
     });
     function navigateTo(page) {
-          window.location.href = page;
-        }
+      window.location.href = page;
+    }
       
     document.addEventListener('DOMContentLoaded', function () {
     const yearSelector = document.getElementById('year-selector');
@@ -193,11 +193,12 @@ ul {
     yearSelector.addEventListener('change', generateCalendar);
     monthSelector.addEventListener('change', generateCalendar);
 
-    function generateCalendar() {
+  function generateCalendar() {
     const selectedYear = parseInt(yearSelector.value);
     const selectedMonth = parseInt(monthSelector.value);
-    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate(); // Get the number of days in the selected month
-    const firstDayOfMonth = new Date(selectedYear, selectedMonth, 1).getDay(); // Get the day of the week for the first day of the month
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate(); // Get the number of days in the selected month
+    // -1 since monthSelect is 1-12 but Date objects use 0-11 for months
+    const firstDayOfMonth = new Date(selectedYear, selectedMonth - 1, 1).getDay(); // Get the day of the week for the first day of the month
 
     // Array to hold the names of the days
     const dayNames = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
@@ -222,15 +223,16 @@ ul {
 
     // Create calendar cells for each day in the month
     for (let i = 1; i <= daysInMonth; i++) {
-        const dayOfWeek = new Date(selectedYear, selectedMonth, i).getDay();
-        const isAvailable = checkAvailability(new Date(selectedYear, selectedMonth, i)); // Check if the day is available
+        const currentDate = new Date(selectedYear, selectedMonth-1, i)
+        const dayOfWeek = currentDate.getDay();
+        const isAvailable = checkAvailability(currentDate); // Check if the day is available
         const className = isAvailable ? 'calendar-day available' : 'calendar-day';
         const dot = isAvailable ? '<span class="dot"></span>' : '';
 
         calendarHTML += `<div class="${className}" data-day="${i}">${i}${dot}</div>`;
 
-         // Start a new row if it's the last day of the week or the last day of the month
-         if (dayOfWeek === 6 || i === daysInMonth) {
+        // Start a new row if it's the last day of the week or the last day of the month
+        if (dayOfWeek === 6 || i === daysInMonth) {
             // Fill empty cells after the last day of the month
             if (i === daysInMonth) {
                 for (let j = dayOfWeek + 1; j < 7; j++) {
@@ -251,37 +253,63 @@ ul {
     const days = document.querySelectorAll('.calendar-day.available');
     days.forEach(day => {
         day.addEventListener('click', () => {
-            const selectedDay = day.dataset.day;
-            showAvailableTurns(selectedYear, selectedMonth, selectedDay);
+            const selectedDay = parseInt(day.dataset.day);
+            showAvailableTurns(selectedDay, selectedMonth, selectedYear );
         });
     });
-}
+  }
 
 
 
-    // Function to check availability (dummy implementation)
-    function checkAvailability(date) {
-        // You should implement your logic to check if the date is available
-        // For now, this function returns true for all dates
-        return true;
+  // Function to check availability (dummy implementation)
+  function checkAvailability(date) {
+    const dateAvailability = getDateAvailability(date.getDate(), date.getMonth() + 1, date.getFullYear())
+    if (!dateAvailability) {
+      return false
     }
 
-    function showAvailableTurns(year, month, day) {
-    // Simulated data, replace with real data or backend call
-    const availableTimes = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM'];
+    const keys = Object.keys(dateAvailability)
+    if (!keys) {
+      return false
+    }
+
+    return keys.length > 0
+  }
+
+  function padNumberWithZero(num) {
+    return (num < 10 ? '0' : '') + num;
+  }
+
+  function getDateAvailability(day, month, year) {
+    const datesDictionary = {{ appointments_by_date | safe }};
+    dateKey = `${padNumberWithZero(day)}-${padNumberWithZero(month)}-${year}`
+    return datesDictionary[dateKey]
+  }
+
+  function fixTime(hour) {
+    return `${padNumberWithZero(hour)}:00`
+  }
+
+  function showAvailableTurns(day, month, year) {      
+    const dateAvailability = getDateAvailability(day, month, year)   
+    const availableHours = Object.keys(dateAvailability);
 
     let availableTurnsHTML = '<h2>בחירת שעה</h2>';
     availableTurnsHTML += '<ul>';
-    availableTimes.forEach(time => {
-        availableTurnsHTML += `<li><button class="time-btn">${time}</button></li>`;
+    availableHours.forEach(hour => {
+      const time = fixTime(hour)
+      const availableEmployeesAtTime = dateAvailability[hour]
+      availableEmployeesAtTime.forEach(employee => {
+        availableTurnsHTML += `<li><button class="time-btn">${time}<br>${employee.name}</button></li>`;
+      })
     });
     availableTurnsHTML += '</ul>';
 
     availableTurnsDiv.innerHTML = availableTurnsHTML;
-}
+  }
 
-    // Function to handle appointment selection
-    function selectAppointment(selectedButton) {
+  // Function to handle appointment selection
+  function selectAppointment(selectedButton) {
     const buttons = document.querySelectorAll('.time-btn');
     buttons.forEach(button => {
         if (button === selectedButton) {
@@ -292,19 +320,20 @@ ul {
     });
   }
 
-    // Event delegation to handle click events on buttons dynamically created
-    availableTurnsDiv.addEventListener('click', function(event) {
-      if (event.target && event.target.matches('.time-btn')) {
-        const selectedButton = event.target;
-        selectAppointment(selectedButton);
-      }
-    });
-    // Initialize calendar with current month and year
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    yearSelector.value = currentYear.toString();
-    monthSelector.value = currentMonth.toString();
-    generateCalendar();
+  // Event delegation to handle click events on buttons dynamically created
+  availableTurnsDiv.addEventListener('click', function(event) {
+    if (event.target && event.target.matches('.time-btn')) {
+      const selectedButton = event.target;
+      selectAppointment(selectedButton);
+    }
+  });
+  // Initialize calendar with current month and year
+  const currentYear = new Date().getFullYear();
+  // month is returned as 0-based.
+  const currentMonth = new Date().getMonth() + 1;
+  yearSelector.value = currentYear.toString();
+  monthSelector.value = currentMonth.toString();
+  generateCalendar();
 });
 
 

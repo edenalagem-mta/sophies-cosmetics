@@ -42,29 +42,22 @@
         height: 90%;
     }
     #form-container {
-      width: 80%;
-      max-width: 600px;
+      width: 100%;
+      max-width: 750px;
       padding: 20px;
       position: absolute;
       top: 40%;
-      left: 60%;
+      left: 50%;
       transform: translate(-50%, -50%);
       direction: rtl;
     }
 
-    .question-container {
+    .apprenticeship-container {
       margin-bottom: 20px;
     }
 
-    .question {
-      background-color: white;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-      margin-bottom: 10px;
-    }
 
-    #submit-newSubject {
+    #submit-newApprenticeship {
       background-color: #E50058;
       color: white;
       border: none;
@@ -75,13 +68,15 @@
     }
 
     #title{
-      padding: 10px;
       width: 100%;
     }
 
-    #content{
-      padding: 20px;
+    #description{
       width: 100%;
+    }
+
+    #duration, #amount_of_meetings{
+      width: 10%;
     }
   </style>
 </head>
@@ -94,15 +89,36 @@
         <div id="main-content">
           <div id="background-rectangle"></div>
           <div id="form-container">
-            <!-- Form content for adding a new subject -->
-            <h2>הוספת נושא חדש</h2>
-            <form id="new-subject-form" method="POST" action="/create-subject">
-              <div class="question-container">
-                <label for="title">כותרת:</label><br>
+            <h2>הוספת התלמדות חדשה</h2>
+            <form id="new-apprenticeship-form" method="POST" action="/create-apprenticeship">
+              <div class="apprenticeship-container">
+                <!-- <label for="image">תמונה:</label><br>
+                <input type="file" id="image" name="image"><br><br> -->
+                <label for="title">שם התלמדות:</label><br>
                 <input type="text" id="title" name="title"><br><br>
-                <label for="content">תוכן:</label><br>
-                <textarea id="content" name="content"></textarea><br><br>
-                <button id="submit-newSubject" type="submit">שלח</button>
+                <label for="description">תיאור התלמדות:</label><br>
+                <textarea id="description" name="description"></textarea><br><br>
+                <div id="dates">
+                  <label for="startDate">תאריך התחלה:</label>
+                  <input type="date" id="startDate" name="startDate">
+                  <label for="endDate">תאריך סיום:</label>
+                  <input type="date" id="endDate" name="endDate">
+                  <label for="hour">שעת ההתלמדות:</label>
+                  <input type="time" id="hour" name="hour"><br><br>
+                </div>
+                <div>
+                  <label for="days">ימים בשבוע:</label>
+                  <input type="days" id="days" name="days">
+                  <label for="duration">משך שיעור בשעות:</label>
+                  <input type="text" id="duration" name="duration">
+                  <label for="amount_of_meetings">כמות מפגשים:</label>
+                  <input type="text" id="amount_of_meetings" name="amount_of_meetings"><br><br>
+                </div>
+                <label for="amount_of_people">מכסת משתתפים:</label><br>
+                <input type="text" id="amount_of_people" name="amount_of_people"><br><br>
+                <label for="price">עלות:</label><br>
+                <input type="text" id="price" name="price"><br><br>
+                <button id="submit-newApprenticeship" type="submit">שלח</button>
               </div>
             </form>
           </div>
@@ -129,7 +145,7 @@
             });
 
           // Send a POST request to the server
-          fetch('/create-subject', {
+          fetch('/create-apprenticeship', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -139,15 +155,15 @@
           })
           .then(response => {
             if (response.ok) {
-                // If successful, reload the page to reflect the changes
-                window.location.href="/forum";
+                // If deletion is successful, reload the page to reflect the changes
+                window.location.href="/apprenticeship";
             } else {
                 // Handle error cases if necessary
-                console.error("Failed to create subject");
+                console.error("Failed to creating apprenticeship");
             }
           })
           .catch(error => {
-              console.error("Error creating subject:", error);
+              console.error("Error createing apprenticeship:", error);
           });
         })
       </script>

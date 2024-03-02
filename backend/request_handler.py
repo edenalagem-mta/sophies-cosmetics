@@ -325,13 +325,14 @@ class RequestHandler(object):
     
     def handle_list_available_appointments(self):
         # 31 days ahead, build map of date -> (time -> employees)
+        days_ahead_for_schedule = 31
                        
         current_date = datetime.today()
         
-        schedule = self.list_work_schedule(current_date, current_date+timedelta(days=31))
+        schedule = self.list_work_schedule(current_date, current_date+timedelta(days=days_ahead_for_schedule-1))
 
         result = dict()
-        for i in range(31):
+        for i in range(days_ahead_for_schedule):
             iteration_date = (current_date + timedelta(days=i)).date()
 
             day_availability = dict()
@@ -346,8 +347,237 @@ class RequestHandler(object):
                 if hour not in day_availability:
                     day_availability[hour] = []
                 
-                day_availability[hour].append(row[4])
+                # row[4] is employee id, row[5] is first name, row[6] is last name
+                day_availability[hour].append({
+                    'id': row[4],
+                    'name': f'{row[5]} {row[6]}'
+                })
 
             result[iteration_date] = day_availability
         
         return result
+    
+    def build_apprenticeship_dict(self, row):
+        return {
+            'apprenticeship_id': row[0],
+            'title': row[1],
+            'description': row[2],
+            'startDate': row[3],
+            'endDate': row[4],
+            'day_of_week': row[5],
+            'time': row[6],
+            'price': row[7],
+            'duration': row[8],
+            'num_registrations': row[9],
+            'amount_of_people': row[10],
+            'status': row[11]
+        }
+    
+    def handle_list_apprenticeship(self, user_account_id):
+        # Execute a SELECT query to fetch data from the table
+        self.mycursor.execute("SELECT apprenticeships.apprenticeship_id, apprenticeships.title, apprenticeships.description, apprenticeships.startDate, apprenticeships.endDate, apprenticeships.day_of_week, apprenticeships.time, apprenticeships.price, apprenticeships.duration, apprenticeships.num_registrations, apprenticeships.amount_of_people, COALESCE(apprenticeship_registration.status, 'Not Registered') AS status FROM apprenticeships LEFT JOIN apprenticeship_registration ON apprenticeships.apprenticeship_id = apprenticeship_registration.apprenticeship_id AND apprenticeship_registration.account_id = %s WHERE apprenticeships.startDate >= CURDATE() ORDER BY apprenticeships.startDate DESC", (user_account_id,))
+        list_apprenticeships = self.mycursor.fetchall()
+
+        # Convert date strings to formatted strings
+        apprenticeships = [self.build_apprenticeship_dict(row) for row in list_apprenticeships]
+        print(f'handle_list_apprenticeship:', apprenticeships)
+        return apprenticeships
+
+    def build_old_apprenticeship_dict(self, row):
+        return {
+            'apprenticeship_id': row[0],
+            'title': row[1],
+            'description': row[2],
+            'startDate': row[3],
+            'endDate': row[4],
+            'day_of_week': row[5],
+            'time': row[6],
+            'price': row[7],
+            'duration': row[8],
+            'num_registrations': row[9],
+            'amount_of_people': row[10]
+        }
+    
+    def handle_list_old_apprenticeship(self):
+        # Execute a SELECT query to fetch data from the table
+        self.mycursor.execute("SELECT apprenticeships.apprenticeship_id, apprenticeships.title, apprenticeships.description, apprenticeships.startDate, apprenticeships.endDate, apprenticeships.day_of_week, apprenticeships.time, apprenticeships.price, apprenticeships.duration, apprenticeships.num_registrations,apprenticeships.amount_of_people  FROM apprenticeships WHERE apprenticeships.startDate < CURDATE() ORDER BY apprenticeships.startDate DESC")
+        list_apprenticeships = self.mycursor.fetchall()
+
+        # Convert date strings to formatted strings
+        return [self.build_old_apprenticeship_dict(row) for row in list_apprenticeships]
+
+    def handle_get_apprenticeship_by_id(self,apprenticeship_id):
+        # Execute a SELECT query to fetch the apprenticeship details by ID
+        self.mycursor.execute("SELECT apprenticeship_id, title, description, startDate, endDate, day_of_week, time, price, duration, num_registrations, amount_of_people, amount_of_meetings FROM apprenticeships WHERE apprenticeship_id = %s", (apprenticeship_id,))
+        apprenticeship_data = self.mycursor.fetchone()
+
+        # Check if the apprenticeship data exists
+        if apprenticeship_data:
+            # Construct a dictionary containing the apprenticeship details
+            apprenticeship = {
+                'apprenticeship_id': apprenticeship_data[0],
+                'title': apprenticeship_data[1],
+                'description': apprenticeship_data[2],
+                'startDate': apprenticeship_data[3],
+                'endDate': apprenticeship_data[4],
+                'day_of_week': apprenticeship_data[5],
+                'time': apprenticeship_data[6],
+                'price': apprenticeship_data[7],
+                'duration': apprenticeship_data[8],
+                'num_registrations': apprenticeship_data[9],
+                'amount_of_people': apprenticeship_data[10],
+                'amount_of_meetings':apprenticeship_data[11]
+            }
+            return apprenticeship
+        else:
+            # If no apprenticeship found with the provided ID, return None 
+            return None
+        
+    def handle_edit_apprenticeship(self, post_data, apprenticeship_id):
+        # Extract the apprenticeship details from the form data
+        title = post_data['title']
+        description = post_data['description']
+        startDate = post_data['startDate']
+        endDate=post_data['endDate']
+        hour=post_data['hour']
+        days=post_data['days']
+        duration=post_data['duration']
+        amount_of_meetings=post_data['amount_of_meetings']
+        amount_of_people=post_data['amount_of_people']
+        price=post_data['price']
+        # image=post_data['image']
+        # update the apprenticeship into the database
+        #TODO: add insert image
+        sql = "UPDATE apprenticeships SET title = %s, description = %s, startDate = %s, endDate = %s, day_of_week = %s, time = %s, price = %s, duration = %s, amount_of_people = %s, amount_of_meetings = %s WHERE apprenticeship_id = %s"
+        self.mycursor.execute(sql, (title, description, startDate, endDate, days, hour, price, duration, amount_of_people, amount_of_meetings, apprenticeship_id))
+        self.mydb.commit()
+
+    def handle_registered_users(self, apprenticeship_id):
+        try:
+            # Fetch the first and last names of registered users for the selected apprenticeship
+            sql = "SELECT a.first_name, a.last_name FROM apprenticeship_registration ar JOIN accounts a ON ar.account_id = a.account_id WHERE ar.apprenticeship_id = %s AND ar.status = 'registered'"
+            self.mycursor.execute(sql, (apprenticeship_id,))
+            registered_users = self.mycursor.fetchall()
+            # Convert the result into a list of dictionaries for JSON serialization
+            result = [{'first_name': user[0], 'last_name': user[1]} for user in registered_users]
+            return result
+        except Exception as e:
+            print(f"An error occurred while fetching registered users: {str(e)}")
+            return None
+        
+    def handle_waiting_users(self, apprenticeship_id):
+        try:
+            # Fetch the first and last names of registered users for the selected apprenticeship
+            sql = "SELECT a.first_name, a.last_name FROM apprenticeship_registration ar JOIN accounts a ON ar.account_id = a.account_id WHERE ar.apprenticeship_id = %s AND ar.status = 'waitingList'"
+            self.mycursor.execute(sql, (apprenticeship_id,))
+            registered_users = self.mycursor.fetchall()
+            # Convert the result into a list of dictionaries for JSON serialization
+            result = [{'first_name': user[0], 'last_name': user[1]} for user in registered_users]
+            return result
+        except Exception as e:
+            print(f"An error occurred while fetching waiting users: {str(e)}")
+            return None
+    
+    def handle_create_apprenticeship(self, post_data):
+       # Extract the apprenticeship details from the form data
+        title = post_data['title']
+        description = post_data['description']
+        startDate = post_data['startDate']
+        endDate=post_data['endDate']
+        hour=post_data['hour']
+        days=post_data['days']
+        duration=post_data['duration']
+        amount_of_meetings=post_data['amount_of_meetings']
+        amount_of_people=post_data['amount_of_people']
+        price=post_data['price']
+        # image=post_data['image']
+        
+        # Insert the new apprenticeship into the database
+        #TODO: add insert image
+        sql = "INSERT INTO apprenticeships (title, description, startDate, endDate, time, day_of_week, duration, amount_of_meetings, amount_of_people, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        val = (title, description, startDate, endDate, hour, days, duration, amount_of_meetings, amount_of_people, price)
+        self.mycursor.execute(sql, val)
+        self.mydb.commit()
+            
+        print(f'handle_create_apprenticeship: {post_data}')
+
+    def handle_delete_apprenticeship(self, apprenticeship_id):
+        try:
+            # TODO: Delete users signup associated with the apprenticeship
+            sql_delete_registrations = "DELETE FROM apprenticeship_registration WHERE apprenticeship_id = %s"
+            self.mycursor.execute(sql_delete_registrations, (apprenticeship_id,))
+            self.mydb.commit()
+            # Execute a DELETE query to remove the apprenticeship from the database
+            sql = "DELETE FROM apprenticeships WHERE apprenticeship_id = %s"
+            val = (apprenticeship_id,)
+            self.mycursor.execute(sql, val)
+            self.mydb.commit()
+            print(f"apprenticeship with ID {apprenticeship_id} deleted successfully")
+            return True
+        except Exception as e:
+            print(f"Error deleting apprenticeship: {str(e)}")
+            return False
+        
+    def handle_apprenticeship_registration(self, apprenticeship_id,cookie):
+        try:
+            # Get the current date and time for registration_date
+            registration_date = datetime.now()
+            account_id = self.signed_in_users[cookie]
+            status = "registered"
+            # Perform the database operation to insert the registration
+            sql = "INSERT INTO Apprenticeship_registration (apprenticeship_id, account_id, registration_date, status) VALUES (%s, %s, %s, %s)"
+            val = (apprenticeship_id, account_id, registration_date, status)
+            self.mycursor.execute(sql, val)
+            self.mydb.commit()
+
+             # Update the apprenticeship table to increment num_registrations
+            sql_update_apprenticeship = "UPDATE apprenticeships SET num_registrations = num_registrations + 1 WHERE apprenticeship_id = %s"
+            self.mycursor.execute(sql_update_apprenticeship, (apprenticeship_id,))
+            self.mydb.commit()
+
+            # Return a success message
+            return "Registration successful"
+
+        except Exception as e:
+            print(f"An error occurred while registering: {str(e)}")
+            return None
+        
+    def handle_apprenticeship_waiting_list(self, apprenticeship_id,cookie):
+        try:
+            # Get the current date and time for registration_date
+            registration_date = datetime.now()
+            account_id = self.signed_in_users[cookie]
+            status = "waitingList"
+            # Perform the database operation to insert the registration
+            sql = "INSERT INTO Apprenticeship_registration (apprenticeship_id, account_id, registration_date, status) VALUES (%s, %s, %s, %s)"
+            val = (apprenticeship_id, account_id, registration_date, status)
+            self.mycursor.execute(sql, val)
+            self.mydb.commit()
+
+            # Return a success message
+            return "Registration to waiting list successful"
+
+        except Exception as e:
+            print(f"An error occurred while registering: {str(e)}")
+            return None
+        
+    def handle_delete_registration(self, apprenticeship_id, account_id):
+        try:
+            # Check if the user's registration status is "registered" before updating num_registrations
+            self.mycursor.execute("SELECT status FROM apprenticeship_registration WHERE apprenticeship_id = %s AND account_id = %s", (apprenticeship_id, account_id))
+            registration_status = self.mycursor.fetchone()
+            
+            if registration_status and registration_status[0] == "registered":
+                # Decrement num_registrations only if the user's registration status is "registered"
+                self.mycursor.execute("UPDATE apprenticeships SET num_registrations = num_registrations - 1 WHERE apprenticeship_id = %s", (apprenticeship_id,))
+                
+            # Delete the user's registration record regardless of the status
+            self.mycursor.execute("DELETE FROM apprenticeship_registration WHERE apprenticeship_id = %s AND account_id = %s", (apprenticeship_id, account_id))
+            
+            # Commit the changes to the database
+            self.mydb.commit()
+            return True
+        
+        except Exception as e:
+            print(f"An error occurred while cancel registration: {str(e)}")
+            return False

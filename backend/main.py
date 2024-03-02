@@ -1,5 +1,7 @@
+import json
 import os
 import datetime
+from datetime import datetime
 from flask import Flask, jsonify, render_template, request,redirect, send_from_directory, session, url_for
 from request_handler import RequestHandler
 from flask_cors import CORS
@@ -50,7 +52,10 @@ def make_appointment():
      # build dict of [date]->([time]->employees)
      appointments_by_date = handler.handle_list_available_appointments()
      print('make_appointment: appointments_by_date: ', appointments_by_date)
-     return render_template('make-appointment.html')
+     appointments_by_date_json = json.dumps({
+         k.strftime('%d-%m-%Y'):v for k,v in appointments_by_date.items()
+     })
+     return render_template('make-appointment.html', appointments_by_date=appointments_by_date_json)
 
 # @app.route('/Work-constraints', methods=['GET'])
 # def Work_constraints():
@@ -105,6 +110,7 @@ def list_comments():
 
 @app.route('/submit-comment', methods=['POST'])
 def submit_comment():
+    #TODO: add the account id related to that comment
     handler.handle_submit_comment(request.form)
     # print(f"Comment added for subject ID {subject_id}: {content}")
     return jsonify(message='Comment added successfully')
@@ -207,7 +213,7 @@ def get_work_constraints():
         employees = handler.handle_get_employees()
         # Retrieve work constraints for each employee from the database
         constraints = handler.handle_get_work_constraints_for_all_employees()
-        print(f'get work constraints: constraints: ',constraints, employees)
+        print(f'get work constraints: constraints: ', constraints, employees)
         return render_template('manager-appointment.html', constraints=constraints, employees=employees)
     except Exception as e:
         # Handle errors and return an appropriate response
@@ -231,14 +237,15 @@ def save_work_schedule():
         end_time = appointment_data['endTime']
 
         # Convert start_time and end_time strings to datetime objects
-        start_datetime = datetime.datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%S')
-        end_datetime = datetime.datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S')
+        start_datetime = datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%S')
+        end_datetime = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%S')
 
         # Call the request handler to insert the appointment details
         handler.handle_save_work_schedule(employee_id, start_datetime, end_datetime)
 
         return jsonify({'success': True}), 200
     except Exception as e:
+        print("main.py: save_work_schedule: ", e)
         return jsonify({'error': str(e)}), 500
     
 @app.route('/get-work-schedule')
@@ -250,6 +257,132 @@ def get_work_schedule():
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
      return render_template('dashboard.html')
+
+@app.route('/apprenticeship', methods=['GET'])
+def apprenticeship():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+
+    # Fetch apprenticeship from the database
+    apprenticeships = handler.handle_list_apprenticeship(account_id)
+    return render_template('apprenticeship.html',apprenticeships=apprenticeships,account_id=account_id)
+
+
+@app.route('/create-apprenticeship', methods=['GET'])
+def createApprenticeship():
+     return render_template('create-apprenticeship.html')
+
+@app.route('/create-apprenticeship', methods=['POST'])
+def create_apprenticeship():
+    
+    try:
+        handler.handle_create_apprenticeship(request.json)
+        
+        # Redirect or return a success message as needed
+        print(f'The submitted data is: {request.json}')
+        return redirect(url_for('apprenticeship'))
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        # Handle errors and return an appropriate response
+        return "An error occurred while creating the apprenticeship", 500
+    
+@app.route('/delete-apprenticeship', methods=['POST'])
+def delete_apprenticeship():
+    try:
+        apprenticeship_id=request.json.get('apprenticeship_id')
+        print('apprenticeship_id: ',apprenticeship_id)
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        # Delete the apprenticeship from the database
+        handler.handle_delete_apprenticeship(apprenticeship_id)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to delete this apprenticeship.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/edit-apprenticeship/<int:apprenticeship_id>', methods=['GET'])
+def editApprenticeship(apprenticeship_id):
+     apprenticeship = handler.handle_get_apprenticeship_by_id(apprenticeship_id)
+     return render_template('edit-apprenticeship.html',apprenticeship=apprenticeship)
+
+@app.route('/edit-apprenticeship/<int:apprenticeship_id>', methods=['POST'])
+def edit_apprenticeship(apprenticeship_id):
+    try:
+        # Extract JSON data from the request
+        data = request.json
+        
+        # Call the handler function to handle the edit
+        handler.handle_edit_apprenticeship(data, apprenticeship_id)
+        
+        # Redirect to the apprenticeship page after successful edit
+        return redirect(url_for('apprenticeship'))
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        # Handle errors and return an appropriate response
+        return "An error occurred while editing the apprenticeship", 500
+    
+@app.route('/registered-users/<int:apprenticeship_id>')
+def get_registered_users(apprenticeship_id):
+    # Fetch the names of registered users for the selected apprenticeship from the database
+    registered_users = handler.handle_registered_users(apprenticeship_id)
+    return jsonify(registered_users)
+
+@app.route('/waiting-users/<int:apprenticeship_id>')
+def get_waiting_users(apprenticeship_id):
+    # Fetch the names of waiting users for the selected apprenticeship from the database
+    registered_users = handler.handle_waiting_users(apprenticeship_id)
+    return jsonify(registered_users)
+    
+@app.route('/apprenticeship-registration', methods=['POST'])
+def apprenticeship_registration():
+    try:
+        apprenticeship_id=request.json.get('apprenticeship_id')
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        handler.handle_apprenticeship_registration(apprenticeship_id,cookie)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to register to this apprenticeship.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/apprenticeship-waiting-list', methods=['POST'])
+def apprenticeship_waiting_list():
+    try:
+        apprenticeship_id=request.json.get('apprenticeship_id')
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        handler.handle_apprenticeship_waiting_list(apprenticeship_id,cookie)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to register to this apprenticeship waiting list.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/delete-registration', methods=['POST'])
+def delete_registration():
+    try:
+        # Extract the apprenticeship ID and user ID from the request JSON
+        apprenticeship_id = request.json.get('apprenticeship_id')
+        account_id = request.json.get('account_id')
+
+        print(f'delete-registration:' , apprenticeship_id, account_id)
+
+        # Call the handler function to delete the registration
+        success = handler.handle_delete_registration(apprenticeship_id, account_id)
+
+        if success:
+            return jsonify({'success': True}), 200
+        else:
+            return jsonify({'error': 'Failed to delete registration'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 
 
 

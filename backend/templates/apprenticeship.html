@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #main-content {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden; /* Hide any overflow outside main-content */
+    }
+
+    #background-rectangle {
+      background-color: #FBB8A1;
+      position: absolute;
+      top: 0.5%;
+      left: 2%;
+      bottom: 5%;
+      width: 96%;
+      height: 99%;
+      z-index: -1;
+      border-radius: 30px; 
+    }
+
+    header {
+        height: 10%;
+      position: relative;
+      z-index: 2; /* Ensure header is above background-rectangle */
+    }
+
+    main{
+        height: 90%;
+    }
+    #form-container {
+      border-radius: 10px;
+      margin: 7%;
+      margin-top: 10%;
+      position: relative;
+      z-index: 2; /* Ensure form-container is above background-rectangle */
+    }
+
+    .apprenticeship-container {
+      margin-bottom: 20px;
+    }
+
+    .apprenticeship {
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 10px;
+      direction: rtl;
+    }
+
+    .btn {
+      background-color: #E50058;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: -5%;
+      margin-bottom: 1%;
+    }
+    p,h3{
+      direction: rtl;
+    }
+
+    .alradySigned{
+      color:#E50058
+    }
+
+  </style>
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+      {% if account_id == 15 %}
+      <button class="btn" id="create-apprenticeship-btn" onclick="createapprenticeship()">התלמדות חדשה</button>
+      <button class="btn" id="old-apprenticeship-btn" onclick="oldapprenticeship()">התלמדויות שעברו</button>
+      {% endif %}
+        <div id="apprenticeship-container" class="auestion-container"> 
+          {% for apprenticeship in apprenticeships %}
+            <div class="apprenticeship">
+                <h3>{{ apprenticeship.title }}</h3>
+                <p>{{ apprenticeship.description }}</p>
+                <h4>תאריך התחלה: {{ apprenticeship.startDate }}</h4>
+                <h4>תאריך סיום: {{ apprenticeship.endDate }}</h4>
+                <h4>השיעורים יתקיימו כל יום {{ apprenticeship.day_of_week }} בשעה {{ apprenticeship.time }}</h4>
+                <h4>משך שיעור: {{ apprenticeship.duration }} שעות</h4>
+                <h4>מחיר: {{ apprenticeship.price }} ש"ח</h4>
+                <div id="apprenticeship-{{ apprenticeship.apprenticeship_id }}"></div>
+                <div id="waiting-list-apprenticeship-{{ apprenticeship.apprenticeship_id }}"></div>
+                {% if apprenticeship.num_registrations < apprenticeship.amount_of_people and apprenticeship.status == "Not Registered"   %}
+                <button class="btn" id="signUpBtn" onclick="apprenticeshipRegistration({{ apprenticeship.apprenticeship_id }})">הרשמה</button>
+                {% endif %}
+                {% if apprenticeship.num_registrations == apprenticeship.amount_of_people and apprenticeship.status == "Not Registered" %}
+                <button class="btn" id="waitingListBtn" onclick="apprenticeshipWaitingList({{ apprenticeship.apprenticeship_id }})">הרשמה לרשימת המתנה</button>
+                {% endif %}
+                {% if apprenticeship.status == "registered" %}
+                <h4 class="alradySigned">את רשומה להתלמדות זאת</h4>
+                <button class="btn" id="cancelRegistrationBtn" onclick="cancelRegistration({{ apprenticeship.apprenticeship_id }},{{ account_id }})">ביטול הרשמה</button>
+                {% endif %}
+                {% if apprenticeship.status == "waitingList" %}
+                <h4 class="alradySigned">את ברשימת ההמתנה להתלמדות זאת</h4>
+                <button class="btn" id="cancelWaitingListBtn" onclick="cancelRegistration({{ apprenticeship.apprenticeship_id }},{{ account_id }})">יציאה מרשימת המתנה</button>
+                {% endif %}
+                {% if account_id == 15 %}
+                  <button class="btn" id="viewRegisteredUsersBtn" onclick="viewRegisteredUsers({{ apprenticeship.apprenticeship_id }})">רשימת משתתפים</button>
+                  <button class="btn" id="waitingList" onclick="viewWaitingList({{ apprenticeship.apprenticeship_id }})">רשימת המתנה</button>
+                  <button class="btn" id="editBtn" onclick="editApprenticeship({{ apprenticeship.apprenticeship_id }})">עריכת התלמדות</button>
+                  <button class="btn" id="delBtn" onclick="deleteApprenticeship({{ apprenticeship.apprenticeship_id }})">מחיקת התלמדות</button>
+                {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function comment(questionId) {
+      // Add comment functionality
+      alert('Comment clicked for Question ' + questionId);
+    }
+
+    function createapprenticeship() {
+      // navigate to create apprenticeship page
+      navigateTo('/create-apprenticeship')
+    }
+
+    function editApprenticeship(apprenticeshipId) {
+      // navigate to edit apprenticeship page
+      navigateTo('/edit-apprenticeship/' + apprenticeshipId)
+    }
+
+function deleteApprenticeship(apprenticeshipId) {
+    // Confirm with the user before deleting the subject
+    if (confirm("האם למחוק את ההתלמדות?")) {
+        // Send an asynchronous POST request to the server to delete the subject
+        fetch("/delete-apprenticeship", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              apprenticeship_id: apprenticeshipId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If deletion is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to delete apprenticeship");
+            }
+        })
+        .catch(error => {
+            console.error("Error deleting apprenticeship:", error);
+        });
+    }
+}
+
+function viewRegisteredUsers(apprenticeshipId) {
+    // Find the apprenticeship container by its ID
+    const apprenticeshipContainer = document.getElementById(`apprenticeship-${apprenticeshipId}`);
+
+    // Find the registered users list by its class
+    let registeredUsersList = apprenticeshipContainer.querySelector('.registered-users-list');
+
+    // Find the title by its class
+    let title = apprenticeshipContainer.querySelector('.registered-users-title');
+
+    // If the list is visible, hide it along with the title; otherwise, fetch and show the list
+    if (registeredUsersList && registeredUsersList.style.display !== 'none') {
+        registeredUsersList.style.display = 'none';
+
+        // Hide the title if it exists
+        if (title) {
+            title.style.display = 'none';
+        }
+    } else {
+        // Send an asynchronous request to the server to fetch registered users
+        fetch(`/registered-users/${apprenticeshipId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Clear any existing content inside the container
+                apprenticeshipContainer.innerHTML = '';
+
+                // Create a title for the registered users list
+                title = document.createElement('h4');
+                title.textContent = "רשומים להתלמדות";
+                title.className = 'registered-users-title'; // Add a class for styling
+
+                // Append the title to the apprenticeship container
+                apprenticeshipContainer.appendChild(title);
+
+                // Create a list to display the registered users
+                registeredUsersList = document.createElement('ul');
+                registeredUsersList.className = 'registered-users-list'; // Add a class for styling
+
+                data.forEach(user => {
+                    // Create list item for each user
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${user.first_name} ${user.last_name}`;
+                    registeredUsersList.appendChild(listItem);
+                });
+
+                // Append the registered users list to the apprenticeship container
+                apprenticeshipContainer.appendChild(registeredUsersList);
+            })
+            .catch(error => {
+                console.error("Error fetching registered users:", error);
+            });
+    }
+}
+
+function viewWaitingList(apprenticeshipId) {
+    // Find the apprenticeship container by its ID
+    const apprenticeshipContainer = document.getElementById(`waiting-list-apprenticeship-${apprenticeshipId}`);
+
+    // Find the registered users list by its class
+    let waitingUsersList = apprenticeshipContainer.querySelector('.waiting-users-list');
+
+    // Find the title by its class
+    let title = apprenticeshipContainer.querySelector('.waiting-users-title');
+
+    // If the list is visible, hide it along with the title; otherwise, fetch and show the list
+    if (waitingUsersList && waitingUsersList.style.display !== 'none') {
+        waitingUsersList.style.display = 'none';
+
+        // Hide the title if it exists
+        if (title) {
+            title.style.display = 'none';
+        }
+    } else {
+        // Send an asynchronous request to the server to fetch registered users
+        fetch(`/waiting-users/${apprenticeshipId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Clear any existing content inside the container
+                apprenticeshipContainer.innerHTML = '';
+
+                // Create a title for the registered users list
+                title = document.createElement('h4');
+                title.textContent = "רשימת המתנה להתלמדות";
+                title.className = 'waiting-users-title'; 
+
+                // Append the title to the apprenticeship container
+                apprenticeshipContainer.appendChild(title);
+
+                // Create a list to display the registered users
+                waitingUsersList = document.createElement('ul');
+                waitingUsersList.className = 'waiting-users-list'; 
+
+                data.forEach(user => {
+                    // Create list item for each user
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${user.first_name} ${user.last_name}`;
+                    waitingUsersList.appendChild(listItem);
+                });
+
+                // Append the waiting users list to the apprenticeship container
+                apprenticeshipContainer.appendChild(waitingUsersList);
+            })
+            .catch(error => {
+                console.error("Error fetching waiting users:", error);
+            });
+    }
+}
+
+
+
+function apprenticeshipRegistration(apprenticeshipId) {
+    // Confirm with the user before register
+    if (confirm("האם להירשם להתלמדות?")) {
+        // Send an asynchronous POST request to the server to register to apprenticeship
+        fetch("/apprenticeship-registration", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              apprenticeship_id: apprenticeshipId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If registration is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to register to apprenticeship");
+            }
+        })
+        .catch(error => {
+            console.error("Error register to apprenticeship:", error);
+        });
+    }
+}
+
+function apprenticeshipWaitingList(apprenticeshipId) {
+    // Confirm with the user before register to waiting list
+    if (confirm("האם להירשם לרשימת המתנה?")) {
+        // Send an asynchronous POST request to the server to register to the apprenticeship waiting list
+        fetch("/apprenticeship-waiting-list", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              apprenticeship_id: apprenticeshipId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If registration is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to register to apprenticeship");
+            }
+        })
+        .catch(error => {
+            console.error("Error register to apprenticeship:", error);
+        });
+    }
+}
+
+function cancelRegistration(apprenticeshipId, accountId) {
+    // Confirm with the user before proceeding with the cancellation
+    if (confirm('האם לבטל את ההרשמה להתלמדות?')) {
+        // Send an AJAX request to the server to delete the registration
+        fetch('/delete-registration', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                apprenticeship_id: apprenticeshipId,
+                account_id: accountId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If the deletion is successful, reload the page or update UI as needed
+                location.reload(); // Reload the page
+                // You can also update UI elements to reflect the cancellation
+            } else {
+                // If there's an error, display an error message
+                console.error('Failed to cancel registration');
+                alert('Failed to cancel registration. Please try again later.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request. Please try again later.');
+        });
+    }
+}
+
+
+
+  </script>
+</body>
+</html>

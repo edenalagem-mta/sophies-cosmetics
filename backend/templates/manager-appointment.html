@@ -180,94 +180,102 @@
         }
 
         $(document).ready(function() {
-    // Initialize FullCalendar
-    $('#calendar').fullCalendar({
-        defaultView: 'agendaWeek', // Display week view
-        header: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'agendaWeek,agendaDay'
-        },
-        editable: true, // Allow event editing
-        selectable: true, // Allow selecting slots
-        selectHelper: true,
-        select: function(start, end) {
-            // Handle slot selection
-            console.log('Selected: ' + start.format() + ' to ' + end.format());
-            // Implement logic to prompt manager to assign employee
-            // You may open a modal or display a form for employee selection
-            // Store the selected start and end times
-            selectedStartTime = start;
-            selectedEndTime = end;
-        },
-        columnFormat: 'ddd DD/MM' // Format the column headers
-    });
+            // Initialize FullCalendar
+            $('#calendar').fullCalendar({
+                defaultView: 'agendaWeek', // Display week view
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'agendaWeek,agendaDay'
+                },
+                editable: true, // Allow event editing
+                selectable: true, // Allow selecting slots
+                selectHelper: true,
+                select: function(start, end) {
+                    // Handle slot selection
+                    console.log('Selected: ' + start.format() + ' to ' + end.format());
+                    // Implement logic to prompt manager to assign employee
+                    // You may open a modal or display a form for employee selection
+                    // Store the selected start and end times
+                    selectedStartTime = start;
+                    selectedEndTime = end;
+                },
+                columnFormat: 'ddd DD/MM' // Format the column headers
+            });
 
-    // Fetch employees from Flask route and populate the dropdown
-    fetch('/get-employees')
-        .then(response => response.json())
-        .then(data => {
-            const employeeDropdown = document.getElementById('employeeDropdown');
-            // Clear existing options
-            employeeDropdown.innerHTML = '';
-            // Iterate over the employees and add options to the select element
-            data.forEach(employee => {
-                const option = document.createElement('option');
-                option.value = employee[0]; // Assuming the employee ID is the first element
-                option.textContent = `${employee[2]} ${employee[3]}`; // Assuming the first name and last name are the third and fourth elements
-                employeeDropdown.appendChild(option);
+            // Fetch employees from Flask route and populate the dropdown
+            fetch('/get-employees')
+                .then(response => response.json())
+                .then(data => {
+                    const employeeDropdown = document.getElementById('employeeDropdown');
+                    // Clear existing options
+                    employeeDropdown.innerHTML = '';
+                    // Iterate over the employees and add options to the select element
+                    data.forEach(employee => {
+                        const option = document.createElement('option');
+                        option.value = employee[0]; // Assuming the employee ID is the first element
+                        option.textContent = `${employee[2]} ${employee[3]}`; // Assuming the first name and last name are the third and fourth elements
+                        employeeDropdown.appendChild(option);
+                    });
+                });
+
+            // Event listener for button click to submit appointment
+            document.getElementById('submitAppointment').addEventListener('click', function() {
+                const employeeId = document.getElementById('employeeDropdown').value;
+                // Submit appointment details to Flask route
+                const appointmentData = {
+                    employeeId: employeeId,
+                    startTime: selectedStartTime.format(),
+                    endTime: selectedEndTime.format()
+                };
+                // Make a POST request to Flask route to save the appointment
+                fetch('/save-work-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(appointmentData)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Appointment saved successfully
+                        console.log('Appointment saved successfully');
+                    } else {
+                        // Appointment save failed
+                        console.error('Failed to save appointment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving appointment:', error);
+                });
             });
         });
 
-    // Event listener for button click to submit appointment
-    document.getElementById('submitAppointment').addEventListener('click', function() {
-        const employeeId = document.getElementById('employeeDropdown').value;
-        // Submit appointment details to Flask route
-        const appointmentData = {
-            employeeId: employeeId,
-            startTime: selectedStartTime.format(),
-            endTime: selectedEndTime.format()
-        };
-        // Make a POST request to Flask route to save the appointment
-        fetch('/save-work-schedule', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(appointmentData)
-        })
-        .then(response => {
-            if (response.ok) {
-                // Appointment saved successfully
-                console.log('Appointment saved successfully');
-            } else {
-                // Appointment save failed
-                console.error('Failed to save appointment');
-            }
-        })
-        .catch(error => {
-            console.error('Error saving appointment:', error);
-        });
-    });
-});
+        function padNumberWithZero(num) {
+            return (num < 10 ? '0' : '') + num;
+        }
 
-$(document).ready(function() {
-    // Fetch appointments from the server
-    $.get('/get-work-schedule', function(data) {
-        // Populate the table body with appointment details
-        data.forEach(function(appointment) {
-            console.log('appointment = ', appointment)
-            $('#work-schedule-table-body').append(`
-                <tr>
-                    <td>${appointment.date}</td>
-                    <td>${appointment.start_time}</td>
-                    <td>${appointment.end_time}</td>
-                    <td>${appointment.first_name} ${appointment.last_name}</td>
-                </tr>
-            `);
-        });
-    });
-});
+        function fixTime(hour) {
+            return `${padNumberWithZero(hour)}:00`
+        }
 
+        $(document).ready(function() {
+            // Fetch appointments from the server
+            $.get('/get-work-schedule', function(data) {
+                // Populate the table body with appointment details
+                data.forEach(function(appointment) {
+                    console.log('appointment = ', appointment)
+                    const tableEntry = `
+                        <tr>
+                            <td>${appointment[1]}</td>
+                            <td>${fixTime(appointment[2].hour)}</td>
+                            <td>${fixTime(appointment[3].hour)}</td>
+                            <td>${appointment[5]} ${appointment[6]}</td>
+                        </tr>
+                    `
+                    $('#work-schedule-table-body').append(tableEntry);
+                });
+            });
+        });
 </script>
 </html>

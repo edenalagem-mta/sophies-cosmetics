@@ -3,7 +3,7 @@
 <!-- navbar.html -->
 <style>
 #navbar {
-  background-image: url(static/img/navbarImage.png); 
+  background-image: url(/static/img/navbarImage.png); 
   background-size: cover;
   background-position-y: 40%;
   padding: 3%;
@@ -20,6 +20,9 @@
 }
 </style>
 <div id="navbar">
+  {% if user_account_type in ['מתלמדת', 'מנהלת'] %}
+    <button onclick="navigateTo('/apprenticeship')">התלמדויות</button>
+  {% endif %}
   {% if user_account_type == 'לקוחה' %}
     <button onclick="navigateTo('/make-appointment')">קביעת תור</button>
   {% elif user_account_type in ['עובדת', 'מנהלת'] %}
