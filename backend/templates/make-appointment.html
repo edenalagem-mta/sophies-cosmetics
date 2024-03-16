@@ -4,125 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nail Turns Booking</title>
-    <!-- <link rel="stylesheet" href="styles.css"> -->
-    <style>
-      body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      overflow: hidden; /* Prevent body overflow */
-    }
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/make-appointment.css') }}">
 
-    .container {
-    display: flex;
-    }
-    .picker {
-  flex: 1;
-  padding: 20px;
-}
-.month-year-picker {
-  text-align: left;
-  margin-left: 22%;
-}
-.content {
-  flex: 2;
-  display: flex;
-}
-h2 {
-    text-align: left;
-    margin-left: 22%;
-}
-
-#calendar {
-    width: 300px;
-    box-shadow: 1px 1px 15px 5px rgba(0, 0, 0, 0.1); 
-    border-radius: 8px; 
-    padding: 2%; 
-    margin-left: 5%;
-
-}
-
-.calendar {
-  flex: 1;
-}
-
-.calendar-day {
-    display: inline-block;
-    width: 100%;
-    height: 40px;
-    line-height: 40px;
-    text-align: center;
-    border: 1px solid #ccc;
-    margin: 7px;
-    cursor: pointer;
-}
-
-.calendar-day.active {
-    background-color: #00bcd4;
-    color: #fff;
-}
-.available-times {
-  flex: 1;
-  padding-left: 5%;
-}
-
-.dot {
-    display: block;
-    width: 6px;
-    height: 6px;
-    background-color: #E50058; /* Adjust color as needed */
-    border-radius: 50%;
-    margin: 0 auto;
-    margin-top: -15%;
-}
-
-.day-names {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.day-name {
-    flex: 1;
-    text-align: center;
-}
-
-.calendar-day.empty {
-    visibility: hidden;
-}
-
-.week{
-  display: flex;
-  justify-content: space-between;
-}
-
-/* Style for time buttons */
-.time-btn {
-    background-color: #F3F2F5;
-    border: none;
-    padding: 10px 15px;
-    margin: 5px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-/* Style for selected time button */
-.time-btn.selected {
-    background-color: #E50058;
-    color: white;
-}
-
-/* Remove default list item bullets */
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-}
-
-
-    </style>
 </head>
 <body>
   <header>
@@ -131,6 +14,10 @@ ul {
   </header>
   <main>
     <div class="container">
+      <button id="myAppointmentBtn" onclick="myAppointment()">התורים שלי</button>
+      {% if account_id == 1 %}
+      <button id="allAppointmentBtn" onclick="allAppointment()">כל התורים</button>
+      {% endif %}
       <div class="picker">
         <h2>בחירת תאריך</h2>
         <div class="month-year-picker">
@@ -162,10 +49,6 @@ ul {
         
       </div>
     </div>
-   
-    
-    
-    <!-- <script src="script.js"></script> -->
     </main>
 </body>
 <script>
@@ -182,6 +65,15 @@ ul {
     });
     function navigateTo(page) {
       window.location.href = page;
+    }
+    function myAppointment() {
+      // navigate to my-appointments page
+      navigateTo('/my-appointments')
+    }
+
+    function allAppointment() {
+      // navigate to my-appointments page
+      navigateTo('/all-appointments')
     }
       
     document.addEventListener('DOMContentLoaded', function () {
@@ -300,12 +192,45 @@ ul {
       const time = fixTime(hour)
       const availableEmployeesAtTime = dateAvailability[hour]
       availableEmployeesAtTime.forEach(employee => {
-        availableTurnsHTML += `<li><button class="time-btn">${time}<br>${employee.name}</button></li>`;
+        availableTurnsHTML += `<li><button class="time-btn" data-employee-id=${employee.id} data-time=${time}>${time}<br>${employee.name}</button></li>`;
       })
     });
     availableTurnsHTML += '</ul>';
+    availableTurnsHTML += '<button class="btn" id="submitAppointmentBtn">קביעת תור</button>';
 
     availableTurnsDiv.innerHTML = availableTurnsHTML;
+    const buttons = document.querySelectorAll('.time-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const selectedButton = event.target;
+            selectAppointment(selectedButton);
+            const submitAppointmentBtn = document.getElementById('submitAppointmentBtn');
+            submitAppointmentBtn.style.display = 'block';
+            // Get the values from the selected button and assign them to variables
+            // const buttonText = selectedButton.textContent.trim();
+            // Define a regular expression pattern to match the time and employee name, time is in HH:mm format
+            // const pattern = /^(\d{2}:\d{2})\s*(.*?)$/;
+            // Extract time and employee name using the regular expression
+            // const match = buttonText.match(pattern);
+            // if (match && match.length === 3) {
+                // selectedTime = match[1]; // Extract time
+                // selectedEmployeeName = match[2]; // Extract employee name
+                // Now you have selectedTime and selectedEmployeeName ready to use
+            // } else {
+                // console.error('Failed to extract time and employee name from button text:', buttonText);
+            // }
+            selectedTime = selectedButton.getAttribute('data-time')
+            selectedEmployeeId = selectedButton.getAttribute('data-employee-id')
+            console.log(`selectedTime: ${selectedTime}, selectedEmployeeId: ${selectedEmployeeId}`)
+            selectedDate = `${padNumberWithZero(day)}-${padNumberWithZero(month)}-${year}`; // Assemble the date string
+
+        });
+    });
+    const submitAppointmentBtn = document.getElementById('submitAppointmentBtn');
+    console.log(submitAppointmentBtn)
+    submitAppointmentBtn.addEventListener('click', function() {
+      submitAppointment(selectedDate, selectedTime, selectedEmployeeId);
+    });
   }
 
   // Function to handle appointment selection
@@ -319,6 +244,7 @@ ul {
         }
     });
   }
+
 
   // Event delegation to handle click events on buttons dynamically created
   availableTurnsDiv.addEventListener('click', function(event) {
@@ -334,6 +260,33 @@ ul {
   yearSelector.value = currentYear.toString();
   monthSelector.value = currentMonth.toString();
   generateCalendar();
+
+  function submitAppointment(date, time, employeeId) {
+    fetch('/submit-appointment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date: date,
+          time: time,
+          employee_id: employeeId
+        })
+    })
+    .then(response => {
+            if (response.ok) {
+                // If submit is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to submit appointment");
+            }
+        })
+        .catch(error => {
+            console.error("Error submit appointment:", error);
+        });
+}
+
 });
 
 

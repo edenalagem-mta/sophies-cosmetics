@@ -37,29 +37,31 @@ def signup():
     print(f'The submitted data is: {request.form}')
     handler.handle_signup(request.form)
     # Check if the account type is לקוחה (customer)
-    if request.form.get('account_type') == 'לקוחה':
-        # Redirect the customer to a different page
-        return render_template('make-appointment.html')
+    successful_login, cookie = handler.handle_signup_cookie(request.form)
+    if successful_login:
+        print(f'cookie = {cookie}')
+        response = redirect(url_for('dashboard'))  # Redirect to the dashboard
+        response.set_cookie(COOKIE_NAME, cookie)
+        print(f'signup: response = {response.headers},{response.data}')
+        return response
+    else:
+        # If credentials are incorrect, return an error message
+        error_message = "שם המשתמש או הסיסמא לא נכונים"
+        return jsonify(success=False, error_message=error_message), 400
     
-    # Redirect other account types to a generic welcome page
-    #TODO: redirect each costumer, manager, employer to a different page
-    return redirect('/dashboard')
+    
 
 @app.route('/make-appointment', methods=['GET'])
 def make_appointment():
-     # TODO: FE should not display days that have passed. Should be greyed out or something
-
+     cookie = request.cookies.get(COOKIE_NAME)
+     user_first_name, user_last_name, user_account_type, account_id = handler.handle_get_first_and_last_name(cookie)
      # build dict of [date]->([time]->employees)
      appointments_by_date = handler.handle_list_available_appointments()
      print('make_appointment: appointments_by_date: ', appointments_by_date)
      appointments_by_date_json = json.dumps({
          k.strftime('%d-%m-%Y'):v for k,v in appointments_by_date.items()
      })
-     return render_template('make-appointment.html', appointments_by_date=appointments_by_date_json)
-
-# @app.route('/Work-constraints', methods=['GET'])
-# def Work_constraints():
-#      return render_template('Work-constraints.html')
+     return render_template('make-appointment.html', appointments_by_date=appointments_by_date_json, account_id=account_id)
 
 @app.route('/navbar', methods=['GET'])
 def show_navbar():
@@ -67,7 +69,8 @@ def show_navbar():
         cookie = request.cookies.get(COOKIE_NAME)
         user_first_name, user_last_name, user_account_type, account_id = handler.handle_get_first_and_last_name(cookie)
         print(f'The user details: {user_first_name} {user_last_name}, The account id:{account_id}')
-        return render_template('navbar.html', user_first_name=user_first_name, user_last_name=user_last_name,user_account_type=user_account_type)
+        unread_notification_count = handler.handle_get_unread_notification_count(account_id) 
+        return render_template('navbar.html', user_first_name=user_first_name, user_last_name=user_last_name,user_account_type=user_account_type, unread_notification_count=unread_notification_count)
     except KeyError as e:
         print(f'Cookie {COOKIE_NAME} not found in request')
     except Exception as e:
@@ -84,6 +87,32 @@ def forum():
     subjects = handler.handle_list_subjects()
     # print (f'subjects: {subjects}')
     return render_template('forum.html', subjects=subjects,account_id=account_id)
+
+# Route to handle the forum page
+@app.route('/manager-forum', methods=['GET'])
+def manager_forum():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    # Fetch subjects from the database
+    subjects = handler.handle_list_manager_subjects()
+    # print (f'subjects: {subjects}')
+    return render_template('manager-forum.html', subjects=subjects,account_id=account_id)
+
+@app.route('/approve-subject', methods=['POST'])
+def approve_subject():
+    try:
+        subject_id=request.json.get('subject_id')
+        print('subject_id: ',subject_id)
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        # approve the subject from the database
+        handler.approve_subject(subject_id)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to delete this subject.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/delete-subject', methods=['POST'])
 def delete_subject():
@@ -253,10 +282,91 @@ def get_work_schedule():
     # Fetch appointments with employee names from the database
     appointments = handler.handle_get_work_schedule()
     return jsonify(appointments)
+
+@app.route('/submit-appointment', methods=['POST'])
+def submit_appointment():
+    print("submit-appointment")
+    try:
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        # Extract data from the request
+        data = request.json
+        date = data['date']
+        time = data['time']
+        employee_id = int(data['employee_id'])
+        print(f'date:{date}, time:{time}, employee_id:{employee_id}')
+        handler.handle_submit_appointment(employee_id, date, time, account_id)
+        # Return a success message
+        return jsonify({'message': 'Appointment submitted successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/my-appointments', methods=['GET'])
+def my_appointments():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    appointments= handler.handle_get_appointment_by_id(account_id)
+    print(f'my_appointments:{appointments}')
+    today = datetime.today().date()
+    print(today)
+    return render_template('my-appointments.html',appointments=appointments,today=today)
+
+@app.route('/employee-appointments', methods=['GET'])
+def employee_appointments():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    appointments= handler.handle_get_appointment_by_employee_id(account_id)
+    print(f'employee_appointments:{appointments}')
+    today = datetime.today().date()
+    print(today)
+    return render_template('employee-appointments.html',appointments=appointments,today=today)
+
+@app.route('/all-appointments', methods=['GET'])
+def all_appointments():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    appointments= handler.handle_get_all_appointment()
+    print(f'all_appointments:{appointments}')
+    today = datetime.today().date()
+    print(today)
+    return render_template('all-appointments.html',appointments=appointments,today=today)
+
+@app.route('/cancel-appointment', methods=['POST'])
+def cancel_appointment():
+    try:
+        appointment_id=request.json.get('appointment_id')
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        # Delete the appointment from the database and return to the available appointments
+        handler.handle_cancel_appointment(appointment_id)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to delete this apprenticeship.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/approve-appointment', methods=['POST'])
+def approve_appointment():
+    try:
+        appointment_id=request.json.get('appointment_id')
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        # approve the appointment
+        handler.handle_approve_appointment(appointment_id)
+        return jsonify({'success': True}), 200
+    except KeyError as e:
+        print(f'Cookie {COOKIE_NAME} not found in request')
+        return jsonify({'error': 'You are not authorized to delete this apprenticeship.'}), 403
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
        
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
-     return render_template('dashboard.html')
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    return render_template('dashboard.html')
 
 @app.route('/apprenticeship', methods=['GET'])
 def apprenticeship():
@@ -266,6 +376,27 @@ def apprenticeship():
     # Fetch apprenticeship from the database
     apprenticeships = handler.handle_list_apprenticeship(account_id)
     return render_template('apprenticeship.html',apprenticeships=apprenticeships,account_id=account_id)
+
+@app.route('/old-apprenticeship', methods=['GET'])
+def oldApprenticeship():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+
+    # Fetch apprenticeship from the database
+    apprenticeships = handler.handle_list_old_apprenticeship()
+    return render_template('old-apprenticeship.html',apprenticeships=apprenticeships,account_id=account_id)
+
+@app.route('/my-apprenticeship', methods=['GET'])
+def myApprenticeship():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+
+    # Fetch apprenticeship from the database
+    apprenticeships = handler.handle_list_apprenticeship_by_account_id(account_id)
+    today = datetime.today().date()
+    print(today)
+    return render_template('my-apprenticeship.html',apprenticeships=apprenticeships,account_id=account_id, today=today)
+
 
 
 @app.route('/create-apprenticeship', methods=['GET'])
@@ -370,12 +501,21 @@ def delete_registration():
         apprenticeship_id = request.json.get('apprenticeship_id')
         account_id = request.json.get('account_id')
 
-        print(f'delete-registration:' , apprenticeship_id, account_id)
-
         # Call the handler function to delete the registration
         success = handler.handle_delete_registration(apprenticeship_id, account_id)
 
         if success:
+            # Check if there are users in the waiting list for the same apprenticeship
+            waiting_list_user = handler.handle_get_waiting_list_users(apprenticeship_id)
+
+            if waiting_list_user:
+                    # Update the user's status to "registered"
+                    handler.handle_update_waiting_list_user_status(waiting_list_user, apprenticeship_id, "registered")
+
+                    # Add a notification to the user's notifications table
+                    notification_message = "איזה כיף! יצאת מרשימת המתנה של התלמדות, כנסי למסך ההתלמדויות כדי לראות את הרשמתך"
+                    handler.handle_add_notification(waiting_list_user, notification_message)
+
             return jsonify({'success': True}), 200
         else:
             return jsonify({'error': 'Failed to delete registration'}), 500
@@ -384,8 +524,40 @@ def delete_registration():
         return jsonify({'error': str(e)}), 500
     
 
+@app.route('/review/<int:apprenticeship_id>', methods=['GET'])
+def review(apprenticeship_id):
+    apprenticeship = handler.handle_get_apprenticeship_by_id(apprenticeship_id)
+    return render_template('review.html', apprenticeship=apprenticeship)
+
+@app.route('/submit-review/<int:apprenticeship_id>', methods=['POST'])
+def submit_review(apprenticeship_id):
+    try:
+        cookie = request.cookies.get(COOKIE_NAME)
+        user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+        print('submit-review: apprenticeship_id: ', request.json)
+        success = handler.handle_submit_review(request.json, apprenticeship_id, account_id)
+        if success:
+            return jsonify({'success': True}), 200
+        else:
+            return jsonify({'error': 'Failed to submit review'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/apprenticeship-review/<int:apprenticeship_id>', methods=['GET'])
+def getReviews(apprenticeship_id):
+    reviews = handler.handle_get_apprenticeship_review(apprenticeship_id)
+    return render_template('apprenticeship-review.html', reviews=reviews)
+
+# Route to handle the notifications page
+@app.route('/notifications', methods=['GET'])
+def notifications():
+    cookie = request.cookies.get(COOKIE_NAME)
+    user_first_name, user_last_name, user_email, account_id = handler.handle_get_first_and_last_name(cookie)
+    notifications = handler.handle_get_notifications(account_id)
+    print(f'notifications: {notifications}')
+    return render_template('notifications.html', notifications=notifications,account_id=account_id)
 
 
 if __name__ == '__main__':
     # Run the Flask application in debug mode on localhost (port 5000)
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=3000, debug=True)

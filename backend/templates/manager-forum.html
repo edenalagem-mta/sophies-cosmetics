@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/manager-forum.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+        <button class="btn" id="create-subject-btn" onclick="forum()">כל הנושאים שאושרו</button>
+        <div id="question-container" class="question-container"> 
+          {% for subject in subjects %}
+            <div class="question">
+                <h5>{{ subject.account_name }}</h5>
+                <h3>{{ subject.title }}</h3>
+                <p>{{ subject.content }}</p>
+                {% if account_id == 1 %}
+                <button class="btn" id="approveBtn" onclick="approveSubject({{ subject.subject_id }})">אשר נושא</button>
+                <button class="btn" id="delBtn" onclick="deleteSubject({{ subject.subject_id }})">מחק נושא</button>
+                {% endif %}
+                
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+
+    function forum() {
+      // navigate to create subject page
+      navigateTo('/forum')
+    }
+
+    
+
+function deleteSubject(subjectId) {
+    // Confirm with the user before deleting the subject
+    if (confirm("האם למחוק את הנושא?")) {
+        // Send an asynchronous POST request to the server to delete the subject
+        fetch("/delete-subject", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                subject_id: subjectId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If deletion is successful, reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                // Handle error cases if necessary
+                console.error("Failed to delete subject");
+            }
+        })
+        .catch(error => {
+            console.error("Error deleting subject:", error);
+        });
+    }
+}
+
+
+function approveSubject(subjectId) {
+      // Send an asynchronous POST request to the server to delete the subject
+      fetch("/approve-subject", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+              subject_id: subjectId
+          })
+      })
+      .then(response => {
+          if (response.ok) {
+              // If deletion is successful, reload the page to reflect the changes
+              window.location.reload();
+          } else {
+              // Handle error cases if necessary
+              console.error("Failed to approve subject");
+          }
+      })
+      .catch(error => {
+          console.error("Error approving subject:", error);
+      });
+    
+}
+
+
+
+  </script>
+</body>
+</html>

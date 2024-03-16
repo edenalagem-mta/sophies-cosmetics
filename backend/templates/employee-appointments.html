@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/employee-appointments.css') }}">
+
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+      <button class="btn" id="makeAppointmentBtn" onclick="workConstraints()">אילוצים</button>
+
+        <div id="appointment-container" class="appointment-container"> 
+          {% for appointment in appointments %}
+            <div class="appointment">
+                <h3>תאריך התור: {{ appointment[1] }}</h3>
+                <p>שעת התור: {{ appointment[2] }}</p>
+                <p>לקוחה: {{ appointment[6] }}</p>
+                {% if appointment[4] == 'waiting for approve' %}
+                <p>סטטוס: ממתין לאישור ההגעה לתור</p>
+                {% endif %}
+                {% if appointment[4] == 'approved' %}
+                <p>סטטוס: ההגעה לתור אושרה</p>
+                {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function workConstraints() {
+      // navigate to make-appointment page
+      navigateTo('/Work-constraints')
+    }
+
+
+
+  </script>
+</body>
+</html>

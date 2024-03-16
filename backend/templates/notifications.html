@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/notifications.css') }}">
+
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+        <div id="notification-container"> 
+          {% for notification in notifications %}
+            <div class="apprenticeship">
+                <h3>{{ notification.notification_message }}</h3>
+                <h5>תאריך {{notification.notification_date}}</h5>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+     
+
+      // Call the loadNavbar function when the page loads
+      window.addEventListener('load', loadNavbar);
+        function navigateTo(page) {
+        window.location.href = page;
+        }
+
+      
+        function loadNavbar() {
+      fetch('/navbar')
+          .then(response => response.text())
+          .then(data => {
+              document.getElementById('navbar-container').innerHTML = data;
+          })
+          .catch(error => {
+              console.error('Error loading navbar:', error);
+          });
+      }
+
+  </script>
+</body>
+</html>

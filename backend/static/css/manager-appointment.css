@@ -1,0 +1,105 @@
+/* Reset default margin and padding */
+body, h1, h2, h3, p, ul, li {
+    margin: 0;
+    padding: 0;
+}
+
+/* Set box-sizing to border-box for all elements */
+* {
+    box-sizing: border-box;
+}
+
+header {
+height: 10%;
+position: relative;
+z-index: 2; 
+}
+
+/* Apply styles to main content */
+main {
+    padding: 20px;
+}
+
+/* Apply styles to flex container */
+.flex-container {
+    display: flex;
+    justify-content: space-between; /* Space elements evenly */
+}
+
+/* Apply styles to sections */
+.constraints-section, .schedule-section {
+    width: 48%; 
+    margin-right: 20px;
+    text-align: right;
+}
+
+/* Apply styles to form elements */
+form {
+    margin-top: 20px;
+}
+
+/* Apply styles to form labels */
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Apply styles to form inputs */
+input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+/* Apply styles to submit button */
+button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Apply styles to employee work constraints */
+.constraints-section h2, .schedule-section h2 {
+    margin-bottom: 10px;
+}
+
+/* Apply styles to individual constraints */
+.constraint {
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* Apply styles to constraint dates */
+.constraint h3 {
+    margin-bottom: 5px;
+}
+
+/* Apply styles to constraint times */
+.constraint ul {
+    list-style-type: none;
+}
+
+/* Apply styles to constraint time entries */
+.constraint li {
+    margin-bottom: 5px;
+}
+
+#calendar{
+    width: 90%;
+}
+
+.btn{
+    background-color: #E50058;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5%;
+    margin-bottom: 1%;
+}

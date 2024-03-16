@@ -9,103 +9,8 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <style>
-        /* Reset default margin and padding */
-        body, h1, h2, h3, p, ul, li {
-            margin: 0;
-            padding: 0;
-        }
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/manager-appointment.css') }}">
 
-        /* Set box-sizing to border-box for all elements */
-        * {
-            box-sizing: border-box;
-        }
-
-        header {
-        height: 10%;
-        position: relative;
-        z-index: 2; 
-        }
-
-        /* Apply styles to main content */
-        main {
-            padding: 20px;
-        }
-
-        /* Apply styles to flex container */
-        .flex-container {
-            display: flex;
-            justify-content: space-between; /* Space elements evenly */
-        }
-
-        /* Apply styles to sections */
-        .constraints-section, .schedule-section {
-            width: 48%; /* Adjust width as needed */
-            margin-right: 20px;
-            text-align: right;
-        }
-
-        /* Apply styles to form elements */
-        form {
-            margin-top: 20px;
-        }
-
-        /* Apply styles to form labels */
-        label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        /* Apply styles to form inputs */
-        input[type="date"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-
-        /* Apply styles to submit button */
-        button[type="submit"] {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Apply styles to employee work constraints */
-        .constraints-section h2, .schedule-section h2 {
-            margin-bottom: 10px;
-        }
-
-        /* Apply styles to individual constraints */
-        .constraint {
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        /* Apply styles to constraint dates */
-        .constraint h3 {
-            margin-bottom: 5px;
-        }
-
-        /* Apply styles to constraint times */
-        .constraint ul {
-            list-style-type: none;
-        }
-
-        /* Apply styles to constraint time entries */
-        .constraint li {
-            margin-bottom: 5px;
-        }
-
-        #calendar{
-            width: 90%;
-        }
-
-    </style>
 </head>
 <body>
     <header>
@@ -133,10 +38,10 @@
                 <table>
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Employee</th>
+                        <th>תאריך</th>
+                        <th>שעת התחלה</th>
+                        <th>שעת סיום</th>
+                        <th>עובדת</th>
                       </tr>
                     </thead>
                     <tbody id="work-schedule-table-body">
@@ -147,19 +52,15 @@
             <div id="employeeModal" class="modal">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Select Employee</h5>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        </div>
                         <div class="modal-body">
                             <form id="employeeForm">
                                 <div class="form-group">
-                                    <label for="employeeDropdown">Select Employee:</label>
+                                    <label for="employeeDropdown">בחירת עובדת</label>
                                     <select id="employeeDropdown" class="form-control">
                                         <!-- Employee options will be dynamically added here -->
                                     </select>
                                 </div>
-                                <button id="submitAppointment">Submit Appointment</button>
+                                <button class= 'btn' id="submitAppointment">קביעת משמרת</button>
                             </form>
                         </div>
                     </div>
@@ -169,11 +70,13 @@
     </main>
 </body>
 <script>
+    
     // Fetch and load navbar from navbar.html
     fetch('/navbar')
           .then(response => response.text())
           .then(data => {
             document.getElementById('navbar-container').innerHTML = data;
+            document.getElementById('navbar-container').style.display = 'block'; // Show the navbar container
           });
           function navigateTo(page) {
           window.location.href = page;
@@ -213,8 +116,9 @@
                     // Iterate over the employees and add options to the select element
                     data.forEach(employee => {
                         const option = document.createElement('option');
-                        option.value = employee[0]; // Assuming the employee ID is the first element
-                        option.textContent = `${employee[2]} ${employee[3]}`; // Assuming the first name and last name are the third and fourth elements
+                        option.value = employee[0]; 
+                        option.textContent = `${employee[2]} ${employee[3]}`;
+                        console.log(option.textContent);
                         employeeDropdown.appendChild(option);
                     });
                 });

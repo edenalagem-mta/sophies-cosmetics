@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/apprenticeship-review.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+      <button class="btn" id="all-apprenticeship-btn" onclick="allapprenticeship()">כל ההתלמדויות</button>
+        <div id="apprenticeship-container"> 
+          {% for review in reviews %}
+            <div class="apprenticeship">
+                <h3>{{ review.account_name }}</h3>
+                <h5>מה היא רמת שביעות הרצון שלך על התתלמדות שעברת?</h5>
+                <p>דירוג: {{ review.satisfaction_storeup }}</p>
+                <h5>עד כמה הרגשת שצברת ידע רלוונטי למקצוע בהתלמדות שעברת?</h5>
+                <p>דירוג: {{ review.satisfaction_storeexp }}</p>
+                <h5>עד כמה היית מרוצה משיטת הלימוד בהתלמדות שעברת?</h5>
+                <p>דירוג: {{ review.satisfaction_storeteq }}</p>
+                <h5>עד כמה היית ממליצה לבנות להצטרף להתלמדות אצלנו?</h5>
+                <p>דירוג: {{ review.satisfaction_store }}</p>
+                <h5>הערות נוספות</h5>
+                <p>{{ review.comment }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+     
+
+      // Call the loadNavbar function when the page loads
+      window.addEventListener('load', loadNavbar);
+        function navigateTo(page) {
+        window.location.href = page;
+        }
+
+      
+        function loadNavbar() {
+      fetch('/navbar')
+          .then(response => response.text())
+          .then(data => {
+              document.getElementById('navbar-container').innerHTML = data;
+          })
+          .catch(error => {
+              console.error('Error loading navbar:', error);
+          });
+      }
+
+
+    function allapprenticeship() {
+      // navigate to apprenticeship page
+      navigateTo('/apprenticeship')
+    }
+    
+  </script>
+</body>
+</html>

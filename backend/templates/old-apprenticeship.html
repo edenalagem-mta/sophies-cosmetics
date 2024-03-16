@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sophie's Cosmetics</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/apprenticeship.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/old-apprenticeship.css') }}">
 
 </head>
 <body>
@@ -18,11 +18,8 @@
     <div id="form-container">
       {% if account_id == 1 %}
       <button class="btn" id="create-apprenticeship-btn" onclick="createapprenticeship()">התלמדות חדשה</button>
-      <button class="btn" id="old-apprenticeship-btn" onclick="oldapprenticeship()">התלמדויות שעברו</button>
-      {% else %}
-      <button class="btn" id="my-apprenticeship-btn" onclick="myapprenticeship()">ההתלמדויות שלי</button>
+      <button class="btn" id="future-apprenticeship-btn" onclick="futureapprenticeship()">התלמדויות עתידיות</button>
       {% endif %}
-
         <div id="apprenticeship-container" class="auestion-container"> 
           {% for apprenticeship in apprenticeships %}
             <div class="apprenticeship">
@@ -52,6 +49,7 @@
                 {% if account_id == 1 %}
                   <button class="btn" id="viewRegisteredUsersBtn" onclick="viewRegisteredUsers({{ apprenticeship.apprenticeship_id }})">רשימת משתתפים</button>
                   <button class="btn" id="waitingList" onclick="viewWaitingList({{ apprenticeship.apprenticeship_id }})">רשימת המתנה</button>
+                  <button class="btn" id="viewReviewsBtn" onclick="viewReviews({{ apprenticeship.apprenticeship_id }})">צפיה בסקרים</button>
                   <button class="btn" id="editBtn" onclick="editApprenticeship({{ apprenticeship.apprenticeship_id }})">עריכת התלמדות</button>
                   <button class="btn" id="delBtn" onclick="deleteApprenticeship({{ apprenticeship.apprenticeship_id }})">מחיקת התלמדות</button>
                 {% endif %}
@@ -62,6 +60,7 @@
   </div>
 </main>
   <script>
+    
       // Fetch and load navbar from navbar.html
     fetch('/navbar')
         .then(response => response.text())
@@ -70,6 +69,12 @@
         });
 
     function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    // Call the loadNavbar function when the page loads
+    window.addEventListener('load', loadNavbar);
+      function navigateTo(page) {
       window.location.href = page;
     }
 
@@ -88,14 +93,14 @@
       navigateTo('/edit-apprenticeship/' + apprenticeshipId)
     }
 
-    function oldapprenticeship() {
-      // navigate to old apprenticeship page
-      navigateTo('/old-apprenticeship')
+    function futureapprenticeship() {
+      // navigate to apprenticeship page
+      navigateTo('/apprenticeship')
     }
 
-    function myapprenticeship() {
-      // navigate to old apprenticeship page
-      navigateTo('/my-apprenticeship')
+    function viewReviews(apprenticeshipId) {
+      // navigate to apprenticeship review page
+      navigateTo('/apprenticeship-review/' + apprenticeshipId)
     }
 
 function deleteApprenticeship(apprenticeshipId) {

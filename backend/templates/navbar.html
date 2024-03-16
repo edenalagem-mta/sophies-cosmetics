@@ -9,33 +9,51 @@
   padding: 3%;
   color: white;
   text-align: right;
+  direction: rtl;
+  display: flex;
+  justify-content: space-between;
 }
 
-#navbar button {
+#navbar .navbar-btn {
   background: none;
   border: none;
   color: white;
   cursor: pointer;
   margin-right: 10px;
 }
+
+#notificationsBtn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-right: auto;
+  margin-left: 10px; /* Adjust the left margin for spacing */
+}
 </style>
 <div id="navbar">
-  {% if user_account_type in ['מתלמדת', 'מנהלת'] %}
-    <button onclick="navigateTo('/apprenticeship')">התלמדויות</button>
-  {% endif %}
-  {% if user_account_type == 'לקוחה' %}
-    <button onclick="navigateTo('/make-appointment')">קביעת תור</button>
-  {% elif user_account_type in ['עובדת', 'מנהלת'] %}
-    <button onclick="navigateTo('/Work-constraints')">תורים</button>
-  {% endif %}
-  <button onclick="navigateTo('/forum')">פורום</button>
-  <button onclick="navigateTo('/dashboard')">איזור אישי</button>
-  <button type="button" id="logoutBtn" onclick="navigateTo('/logout')">יציאה</button>
   <span id="user-info">
     {% if user_first_name and user_last_name %}
         ברוכה הבאה, {{ user_first_name }} {{ user_last_name }}
     {% endif %}
-</span>
+  </span> 
+  {% if user_account_type in ['מתלמדת', 'מנהלת'] %}
+    <button class="navbar-btn" onclick="navigateTo('/apprenticeship')">התלמדויות</button>
+  {% endif %}
+  {% if user_account_type == 'לקוחה' %}
+    <button class="navbar-btn" onclick="navigateTo('/make-appointment')">קביעת תור</button>
+  {% elif user_account_type == 'עובדת' %}
+    <button class="navbar-btn" onclick="navigateTo('/Work-constraints')">תורים</button>
+  {% elif user_account_type == 'מנהלת' %}
+  <button class="navbar-btn" onclick="navigateTo('/manager-appointment')">סידור עבודה</button>
+  <button class="navbar-btn" onclick="navigateTo('/make-appointment')">קביעת תור</button>
+  {% endif %}
+  <button class="navbar-btn" onclick="navigateTo('/forum')">פורום</button>
+  <button class="navbar-btn" onclick="navigateTo('/dashboard')">איזור אישי</button>
+  <button class="navbar-btn" type="button" id="logoutBtn" onclick="navigateTo('/logout')">יציאה</button>
+  <button type="button" id="notificationsBtn" onclick="navigateTo('/notifications')">התראות<span id="unreadNotifications">({{ unread_notification_count }})</span></button>
+
+  
 </div>
 
 </html>

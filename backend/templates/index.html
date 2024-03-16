@@ -4,70 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cosmetics s'sophie - כניסה לחשבון</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #CFD1D2;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        form {
-            max-width: 400px; /* גודל הטופס */
-            width: 100%;
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: auto;
-            box-sizing: border-box;
-        }
-        h2 {
-            color: black; 
-        }
-        input {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            display: inline-block;
-        }
-        button {
-            background-color:  #E50058;
-            color: white;
-            padding: 10px 40px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        img {
-            width: 400px; /* גודל התמונה */
-            height: auto;
-            margin-right: 20px; /* מרווח מצד ימין */
-        }
-
-        #signUp{
-            direction: rtl;
-        }
-
-        #signUpBtn,#forgotPasswordBtn{
-            background-color: white;
-            color: #E50058;
-            font-weight: bolder;
-            padding: 0;
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
 
-    <!-- טופס התחברות -->
+
     <form method="POST" action="/login">
         <h2>כניסה לחשבון</h2>
         

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/my-appointments.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+      <button class="btn" id="makeAppointmentBtn" onclick="makeAppointment()">קביעת תור</button>
+
+        <div id="appointment-container" class="appointment-container"> 
+          {% for appointment in appointments %}
+            <div class="appointment">
+                <h3>תאריך התור: {{ appointment[1] }}</h3>
+                <p>שעת התור: {{ appointment[2] }}</p>
+                <p>עובדת: {{ appointment[6] }}</p>
+                {% if appointment[4] == 'waiting for approve' %}
+                <p>סטטוס: ממתין לאישור ההגעה לתור</p>
+                <button class="btn" id="approveAppointmentBtn" onclick="approveAppointment({{ appointment[0] }})">אישור הגעה</button>
+                {% endif %}
+                {% if appointment[4] == 'approved' %}
+                <p>סטטוס: ההגעה לתור אושרה</p>
+                {% endif %}
+                {% if appointment[1] > today %}
+                <button class="btn" id="cancelAppointmentBtn" onclick="cancelAppointment({{ appointment[0] }})">ביטול תור</button>
+                {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+    function makeAppointment() {
+      // navigate to make-appointment page
+      navigateTo('/make-appointment')
+    }
+
+
+function cancelAppointment(appointmentId) {
+    // Confirm with the user before proceeding with the cancellation
+    if (confirm('האם לבטל את התור?')) {
+        // Send an AJAX request to the server to delete the registration
+        fetch('/cancel-appointment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                appointment_id: appointmentId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If the cancel is successful, reload the page or update UI as needed
+                location.reload(); // Reload the page
+                // You can also update UI elements to reflect the cancellation
+            } else {
+                // If there's an error, display an error message
+                console.error('Failed to cancel appointment');
+                alert('Failed to cancel appointment. Please try again later.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request. Please try again later.');
+        });
+    }
+}
+
+function approveAppointment(appointmentId) {
+    // Confirm with the user before proceeding with the approvement
+    if (confirm('האם לאשר הגעה לתור?')) {
+        // Send an AJAX request to the server to delete the registration
+        fetch('/approve-appointment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                appointment_id: appointmentId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If the approvement is successful, reload the page or update UI as needed
+                location.reload(); // Reload the page
+                // You can also update UI elements to reflect the cancellation
+            } else {
+                // If there's an error, display an error message
+                console.error('Failed to approve appointment');
+                alert('Failed to cancel appointment. Please try again later.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request. Please try again later.');
+        });
+    }
+}
+
+
+
+  </script>
+</body>
+</html>

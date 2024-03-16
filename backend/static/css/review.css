@@ -1,0 +1,86 @@
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+#main-content {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden; /* Hide any overflow outside main-content */
+}
+
+#background-rectangle {
+  background-color: #FBB8A1;
+  position: absolute;
+  top: 0.5%;
+  left: 2%;
+  bottom: 5%;
+  width: 96%;
+  height: 99%;
+  z-index: -1;
+  border-radius: 30px; 
+}
+
+header {
+    height: 10%;
+    position: relative;
+    z-index: 2; /* Ensure header is above background-rectangle */
+}
+
+main{
+    height: 90%;
+}
+.container {
+    max-width: 50%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-left: 23%;
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+h2{
+    color: rgb(218, 120, 78);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    direction: rtl;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+
+.btn {
+  background-color: #E50058;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: -5%;
+  margin-bottom: 1%;
+}
+
+
+
+#successMessage {
+    color: #4CAF50;
+    margin-top: 20px;
+    display: none;
+}

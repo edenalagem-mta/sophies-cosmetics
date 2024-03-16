@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophie's Cosmetics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/my-apprenticeship.css') }}">
+</head>
+<body>
+    <header>
+        <div id="navbar-container"></div>
+      </header>
+      <main>
+  <div id="main-content">
+    <div id="background-rectangle"></div>
+    <div id="form-container">
+      <button class="btn" id="all-apprenticeship-btn" onclick="allapprenticeship()">כל ההתלמדויות</button>
+        <div id="apprenticeship-container" class="auestion-container"> 
+          {% for apprenticeship in apprenticeships %}
+            <div class="apprenticeship">
+                <h3>{{ apprenticeship.title }}</h3>
+                <p>{{ apprenticeship.description }}</p>
+                <h4>תאריך התחלה: {{ apprenticeship.startDate }}</h4>
+                <h4>תאריך סיום: {{ apprenticeship.endDate }}</h4>
+                <h4>השיעורים יתקיימו כל יום {{ apprenticeship.day_of_week }} בשעה {{ apprenticeship.time }}</h4>
+                <h4>משך שיעור: {{ apprenticeship.duration }} שעות</h4>
+                <h4>מחיר: {{ apprenticeship.price }} ש"ח</h4>
+                {% if apprenticeship.startDate > today %}
+                <button class="btn" id="cancelRegistrationBtn" onclick="cancelRegistration({{ apprenticeship.apprenticeship_id }},{{ account_id }})">ביטול הרשמה</button>
+                {% endif %}
+                {% if apprenticeship.endDate < today %}
+                <button class="btn" id="addReviewBtn" onclick="addReview({{ apprenticeship.apprenticeship_id }})">מילוי סקר</button>
+                {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+  <script>
+      // Fetch and load navbar from navbar.html
+    fetch('/navbar')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navbar-container').innerHTML = data;
+        });
+
+    function navigateTo(page) {
+      window.location.href = page;
+    }
+
+
+    function allapprenticeship() {
+      // navigate to apprenticeship page
+      navigateTo('/apprenticeship')
+    }
+
+    function addReview(apprenticeshipId) {
+      // navigate to edit apprenticeship page
+      navigateTo('/review/' + apprenticeshipId)
+    }
+
+
+function cancelRegistration(apprenticeshipId, accountId) {
+    // Confirm with the user before proceeding with the cancellation
+    if (confirm('האם לבטל את ההרשמה להתלמדות?')) {
+        // Send an AJAX request to the server to delete the registration
+        fetch('/delete-registration', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                apprenticeship_id: apprenticeshipId,
+                account_id: accountId
+            })
+        })
+        .then(response => {
+            if (response.ok) {
+                // If the deletion is successful, reload the page or update UI as needed
+                location.reload(); // Reload the page
+                // You can also update UI elements to reflect the cancellation
+            } else {
+                // If there's an error, display an error message
+                console.error('Failed to cancel registration');
+                alert('Failed to cancel registration. Please try again later.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request. Please try again later.');
+        });
+    }
+}
+
+
+
+  </script>
+</body>
+</html>

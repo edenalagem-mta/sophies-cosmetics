@@ -1,0 +1,84 @@
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  main {
+    min-height: 100vh;
+    height: 90%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header {
+    height: 10%;
+    position: relative;
+    z-index: 2; 
+  }
+
+  h2{
+    direction: rtl;
+    margin-top: 5%;
+    margin-right:5%
+  }
+
+  form{
+    direction: rtl;
+  }
+  .btn,.delBtn{
+    background-color: #E50058;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 45%;
+    display: block;
+  }
+
+  #employeeAppointments{
+    margin-top:1%;
+    margin-left:1%
+  }
+
+  #times{
+    height: 200px;
+    width: 100px;
+  }
+
+  .dates{
+    margin-right: 40%;
+    position: absolute;
+    margin-top: 5%;
+  }
+
+  .times{
+    margin-right: 50%;
+  }
+
+  li{
+    margin:2%;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    text-align: right;
+    list-style-type: none
+  }
+
+  #background-rectangle {
+    background-color: #FBB8A1;
+    position: relative;
+    left: 2%;
+    width: 96%;
+    height: 99%;
+    border-radius: 30px; 
+    padding-bottom: 1%;
+  }
+
+  ul{
+    padding-inline-end: 40px;
+  }
